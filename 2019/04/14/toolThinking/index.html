@@ -79,19 +79,19 @@
 
 
 
-<meta name="description" content="note  容错推送工具的设计 潜在bug以及问题的处理  背景目前gamebar有4亿个kv数据需要同步到新的数据库,项目组希望能尽快完成数据的导入，并且保证数据的完整性和正确，实时数据已经通过流水实时同步到新的数据库，此工具是完成历史数据的导入，对于更新时间戳新于历史数据的不予同步，如此可保证数据的正确性和完整性。 一个不好的开始 以上是这个需求的背景，但是实际上之前春节的时候，我就做过一个类">
+<meta name="description" content="note  容错推送工具的设计 潜在bug以及问题的处理  背景目前gamebar有4亿个kv数据需要同步到新的数据库,项目组希望能尽快完成数据的导入，并且保证数据的完整性和正确，实时数据已经通过流水实时同步到新的数据库，此工具是完成历史数据的导入，对于更新时间戳新于历史数据的不予同步，如此可保证数据的正确性和完整性">
 <meta name="keywords" content="backend">
 <meta property="og:type" content="article">
-<meta property="og:title" content="toolThinking">
+<meta property="og:title" content="push工具实践">
 <meta property="og:url" content="http://yoursite.com/2019/04/14/toolThinking/index.html">
 <meta property="og:site_name" content="pinewu&#39;s tech blog">
-<meta property="og:description" content="note  容错推送工具的设计 潜在bug以及问题的处理  背景目前gamebar有4亿个kv数据需要同步到新的数据库,项目组希望能尽快完成数据的导入，并且保证数据的完整性和正确，实时数据已经通过流水实时同步到新的数据库，此工具是完成历史数据的导入，对于更新时间戳新于历史数据的不予同步，如此可保证数据的正确性和完整性。 一个不好的开始 以上是这个需求的背景，但是实际上之前春节的时候，我就做过一个类">
+<meta property="og:description" content="note  容错推送工具的设计 潜在bug以及问题的处理  背景目前gamebar有4亿个kv数据需要同步到新的数据库,项目组希望能尽快完成数据的导入，并且保证数据的完整性和正确，实时数据已经通过流水实时同步到新的数据库，此工具是完成历史数据的导入，对于更新时间戳新于历史数据的不予同步，如此可保证数据的正确性和完整性">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/image/raw.png">
-<meta property="og:updated_time" content="2019-06-14T13:05:28.506Z">
+<meta property="og:updated_time" content="2019-06-15T02:18:13.297Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="toolThinking">
-<meta name="twitter:description" content="note  容错推送工具的设计 潜在bug以及问题的处理  背景目前gamebar有4亿个kv数据需要同步到新的数据库,项目组希望能尽快完成数据的导入，并且保证数据的完整性和正确，实时数据已经通过流水实时同步到新的数据库，此工具是完成历史数据的导入，对于更新时间戳新于历史数据的不予同步，如此可保证数据的正确性和完整性。 一个不好的开始 以上是这个需求的背景，但是实际上之前春节的时候，我就做过一个类">
+<meta name="twitter:title" content="push工具实践">
+<meta name="twitter:description" content="note  容错推送工具的设计 潜在bug以及问题的处理  背景目前gamebar有4亿个kv数据需要同步到新的数据库,项目组希望能尽快完成数据的导入，并且保证数据的完整性和正确，实时数据已经通过流水实时同步到新的数据库，此工具是完成历史数据的导入，对于更新时间戳新于历史数据的不予同步，如此可保证数据的正确性和完整性">
 <meta name="twitter:image" content="http://yoursite.com/image/raw.png">
 
 
@@ -128,7 +128,7 @@
 
 
 
-  <title>toolThinking | pinewu's tech blog</title>
+  <title>push工具实践 | pinewu's tech blog</title>
   
 
 
@@ -163,7 +163,7 @@
       </a>
     </div>
       
-        <p class="site-subtitle">65</p>
+        <p class="site-subtitle">自强不息 厚德载物</p>
       
   </div>
 
@@ -252,7 +252,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">toolThinking</h1>
+          <h1 class="post-title" itemprop="name headline">push工具实践</h1>
         
 
         <div class="post-meta">
@@ -307,7 +307,9 @@
 <li>容错推送工具的设计</li>
 <li>潜在bug以及问题的处理</li>
 </ul>
-<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>目前gamebar有4亿个kv数据需要同步到新的数据库,项目组希望能尽快完成数据的导入，并且保证数据的完整性和正确，实时数据已经通过流水实时同步到新的数据库，此工具是完成历史数据的导入，对于更新时间戳新于历史数据的不予同步，如此可保证数据的正确性和完整性。</p>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>目前gamebar有4亿个kv数据需要同步到新的数据库,项目组希望能尽快完成数据的导入，并且保证数据的完整性和正确，实时数据已经通过流水实时同步到新的数据库，此工具是完成历史数据的导入，对于更新时间戳新于历史数据的不予同步，如此可保证数据的正确性和完整性</p>
+<a id="more"></a>
+
 <p><strong>一个不好的开始</strong></p>
 <p>以上是这个需求的背景，但是实际上之前春节的时候，我就做过一个类似的push工具，只不过当时的与我对接的服务端是 手Q公众号 和 手Q红点系统，这都是久经考验的后台系统，成功率几乎就是100%，延迟也非常低，也允许udp协议访问，最重要的是推送量很小，不足一亿，其实有了这几个条件，推送工具就非常好写了，我当时都没写出错处理，也没考虑负载啥的，直接怼了几百个微线程开始发包，结果也没啥问题。后来又有了类似的推送工具的需求，但是客观条件不是很好，推送延迟高(100MS)，成功率低(qps超过4000后甚至彻底不可用)，只支持tcp访问，数据量非常大(4E kv)，我当时的第一版尝试是直接用以前的方法，100个工作线程先怼上去，结果就非常不符合预期，推送QPS低的我想骂人，因为单次推送延迟大，推送QPS就很难上去，那再加100个微线程，然后我的机器就高负载了，最终我只能把推送线程放到150个，我以为这样终于就没问题了，我吃完了饭回来一看运行log, error log就像疯了一样刷屏。</p>
 <p><strong>我需要怎么做</strong></p>
@@ -452,7 +454,7 @@
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
               <p class="site-author-name" itemprop="name">pinewu</p>
-              <p class="site-description motion-element" itemprop="description">we</p>
+              <p class="site-description motion-element" itemprop="description">pinewu@tencent.com</p>
           </div>
 
           <nav class="site-state motion-element">
