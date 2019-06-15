@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT">
+  <meta name="keywords" content="backend,tracing,logging,">
 
 
 
@@ -79,16 +79,21 @@
 
 
 
-<meta name="description" content="diwu@alumni.hust.edu.cn">
-<meta property="og:type" content="website">
-<meta property="og:title" content="吳迪的雜談">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta name="description" content="序来腾讯做后台也将近一年了，发过许多版本，查过很多问题，有半夜被成功率掉0，服务高负载 搞过，踩过一些坑。如果让我总结后台开发比较重要的一些点，我觉得肯定有系统的可见性Visibility，他真的非常重要。应该说任何 7 * 24 运行的系统都是这样的，无监控不7 * 24">
+<meta name="keywords" content="backend,tracing,logging">
+<meta property="og:type" content="article">
+<meta property="og:title" content="后台系统的可见性">
+<meta property="og:url" content="http://yoursite.com/2019/06/15/back-Visibility/index.html">
 <meta property="og:site_name" content="吳迪的雜談">
-<meta property="og:description" content="diwu@alumni.hust.edu.cn">
+<meta property="og:description" content="序来腾讯做后台也将近一年了，发过许多版本，查过很多问题，有半夜被成功率掉0，服务高负载 搞过，踩过一些坑。如果让我总结后台开发比较重要的一些点，我觉得肯定有系统的可见性Visibility，他真的非常重要。应该说任何 7 * 24 运行的系统都是这样的，无监控不7 * 24">
 <meta property="og:locale" content="default">
+<meta property="og:image" content="http://yoursite.com/image/backend_vis.png">
+<meta property="og:image" content="http://yoursite.com/image/backend_vis2.png">
+<meta property="og:updated_time" content="2019-06-15T07:07:42.789Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="吳迪的雜談">
-<meta name="twitter:description" content="diwu@alumni.hust.edu.cn">
+<meta name="twitter:title" content="后台系统的可见性">
+<meta name="twitter:description" content="序来腾讯做后台也将近一年了，发过许多版本，查过很多问题，有半夜被成功率掉0，服务高负载 搞过，踩过一些坑。如果让我总结后台开发比较重要的一些点，我觉得肯定有系统的可见性Visibility，他真的非常重要。应该说任何 7 * 24 运行的系统都是这样的，无监控不7 * 24">
+<meta name="twitter:image" content="http://yoursite.com/image/backend_vis.png">
 
 
 
@@ -118,13 +123,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/">
+  <link rel="canonical" href="http://yoursite.com/2019/06/15/back-Visibility/">
 
 
 
 
 
-  <title>吳迪的雜談</title>
+  <title>后台系统的可见性 | 吳迪的雜談</title>
   
 
 
@@ -143,8 +148,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -237,9 +241,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -269,9 +273,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/06/15/back-Visibility/" itemprop="url">后台系统的可见性</a></h1>
+          <h1 class="post-title" itemprop="name headline">后台系统的可见性</h1>
         
 
         <div class="post-meta">
@@ -343,16 +345,48 @@
       
 
       
-        
-          <h3 id="序"><a href="#序" class="headerlink" title="序"></a>序</h3><p>来腾讯做后台也将近一年了，发过许多版本，查过很多问题，有半夜被成功率掉0，服务高负载 搞过，踩过一些坑。如果让我总结后台开发比较重要的一些点，我觉得肯定有系统的可见性Visibility，他真的非常重要。应该说任何 7 * 24 运行的系统都是这样的，无监控不7 * 24</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/06/15/back-Visibility/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
+        <h3 id="序"><a href="#序" class="headerlink" title="序"></a>序</h3><p>来腾讯做后台也将近一年了，发过许多版本，查过很多问题，有半夜被成功率掉0，服务高负载 搞过，踩过一些坑。如果让我总结后台开发比较重要的一些点，我觉得肯定有系统的可见性Visibility，他真的非常重要。应该说任何 7 * 24 运行的系统都是这样的，无监控不7 * 24</p>
+<a id="more"></a>
+<p>本文参考tx 同事 unlikezhang 的 《后台系统可见性衡量》, Peter Bourgon 《Metrics, tracing, and logging》 </p>
+<h2 id="先列下我认为的几种增加可见性方法"><a href="#先列下我认为的几种增加可见性方法" class="headerlink" title="先列下我认为的几种增加可见性方法"></a>先列下我认为的几种增加可见性方法</h2><p><strong>log</strong><br>| methond       | desc                                       | 优点                         | 缺点                                                 |<br>| ————- | —————————————— | —————————- | —————————————————- |<br>| printf类      | 学生时代写一次性程序常用                   | 非常简单                     | 输出信息无法长久保存，刷屏。几乎不能用于生产。       |<br>| local log类   | 把 log 打在本地                            | 简单，有保存                 | 线上环境几乎只有error log，log分散在集群中每一台机器 |<br>| 专门的log服务 | 把log输出到专门的log-agent后发送到存储集群 | 可全量log，支持染色后全量log | 需要专门的服务来做这件事(根本不是缺点)               |</p>
+<p><strong>statistic</strong></p>
+<table>
+<thead>
+<tr>
+<th>methond</th>
+<th>desc</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>属性计数</td>
+<td>针对单个属性的数值记录，如cpu负载，磁盘使用量，当前进程数，访问量，入流量等。是kv级别的监控，可以在程序中添加关注的属性的监控，自行进行加上报操作</td>
+</tr>
+<tr>
+<td>调用统计</td>
+<td>统计每次外部调用的callerId,calleeId, ip, delay , retcode , isSuccess。并以此为基础分析服务运行情况</td>
+</tr>
+</tbody></table>
+<p>以上列出了常见的 5 中观察系统运行情况的方式 , log类比较细，基本在代码层面了。statistic层比较大，多在系统层面，所以常见的告警都是利用statistic 层面的数据进行规则匹配的</p>
+<h2 id="高可见性的用处"><a href="#高可见性的用处" class="headerlink" title="高可见性的用处"></a>高可见性的用处</h2><p>一般的查问题的方法都是<br>外网投诉 / 告警 —-&gt; 开发者 —-&gt; 查看相关监控数据，观察各项指标 —–&gt; 去log系统捞log —–&gt; 上机器grep log或者tail log —-&gt; 分析问题 —–&gt; 定位到问题 —- 解决问题</p>
+<p>问题的解决其实和破案的过程非常像，定位问题是最重要的，而定位问题就需要我们的系统足够可见，不然定位问题无从谈起。</p>
+<h2 id="后台可见性的三个方面"><a href="#后台可见性的三个方面" class="headerlink" title="后台可见性的三个方面"></a>后台可见性的三个方面</h2><p>Peter Bourgon 在他的文章中提出了系统可见性的三个词 [Metrics, tracing, logging]. </p>
+<p><img src="/image/backend_vis.png" alt></p>
+<p>以下是原文</p>
+<p>metrics :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">I think that the defining characteristic of metrics is that they are aggregatable: they are the atoms that compose into a single logical gauge, counter, or histogram over a span of time. As examples: the current depth of a queue could be modeled as a gauge, whose updates aggregate with last-writer-win semantics; the number of incoming HTTP requests could be modeled as a counter, whose updates aggregate by simple addition; and the observed duration of a request could be modeled into a histogram, whose updates aggregate into time-buckets and yield statistical summaries.</span><br></pre></td></tr></table></figure>
+
+<p>logging :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">I think that the defining characteristic of logging is that it deals with discrete events. As examples: application debug or error messages emitted via a rotated file descriptor through syslog to Elasticsearch (or OK Log, nudge nudge); audit-trail events pushed through Kafka to a data lake like BigTable; or request-specific metadata pulled from a service call and sent to an error tracking service like NewRelic.</span><br></pre></td></tr></table></figure>
+
+<p>tracing :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">I think that the single defining characteristic of tracing, then, is that it deals with information that is request-scoped. Any bit of data or metadata that can be bound to lifecycle of a single transactional object in the system. As examples: the duration of an outbound RPC to a remote service; the text of an actual SQL query sent to a database; or the correlation ID of an inbound HTTP request.</span><br></pre></td></tr></table></figure>
+
+<p><img src="/image/backend_vis2.png" alt></p>
+<p>其实 Peter Bourgon 所说的 metrics 应该和我说的系统级别的 statistic 是差不多的，这个级别的可见性，应该是记录一些 counter , 或者一些统计量，监控系统最好能以实时统计图的方式给出他们的表现，这个级别的是一个 statistical summaries .</p>
+<p>而logging主要就是程序自行输出的运行日志，按我的理解 tracing 是针对请求级别，包括上游链路，下游链路上所有log针对此次处理的Log，当然这种最好就是全量Log,一般由专门的log server完成这些服务，一般是只针对染色后的用户。</p>
+<p>##总结</p>
+<p>详细而好用又不失性能的监控其实是很难的，当然以后设计时，应该往metrics , logging , tracing 三个方面去想, 每个方面都需要做设计，不可顾此失彼，只有这样建立的监控才是立体的，有效的</p>
+
       
     </div>
     
@@ -367,14 +401,40 @@
 
     <footer class="post-footer">
       
-
+        <div class="post-tags">
+          
+            <a href="/tags/backend/" rel="tag"># backend</a>
+          
+            <a href="/tags/tracing/" rel="tag"># tracing</a>
+          
+            <a href="/tags/logging/" rel="tag"># logging</a>
+          
+        </div>
       
 
       
+      
+      
 
       
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/15/high-cpu-load/" rel="next" title="httpc 的链接池在multi microThread中失效引起高负载">
+                <i class="fa fa-chevron-left"></i> httpc 的链接池在multi microThread中失效引起高负载
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
       
-        <div class="post-eof"></div>
+
+      
       
     </footer>
   </div>
@@ -384,311 +444,11 @@
   </article>
 
 
-    
-      
 
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/15/high-cpu-load/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="pinewu">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/image/siteAvatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="吳迪的雜談">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/06/15/high-cpu-load/" itemprop="url">httpc 的链接池在multi microThread中失效引起高负载</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-15T11:00:18+08:00">
-                2019-06-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/tech-blog/" itemprop="url" rel="index">
-                    <span itemprop="name">tech_blog</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p><strong>本文主要涉及内容如下</strong></p>
-<ol>
-<li>系统负载高的一种可能</li>
-<li>如何分析系统负载高</li>
-<li>httpc的使用注意
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/06/15/high-cpu-load/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </li></ol></div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/14/toolThinking/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="pinewu">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/image/siteAvatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="吳迪的雜談">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/04/14/toolThinking/" itemprop="url">push工具实践</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-04-14T20:25:58+08:00">
-                2019-04-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/tech-blog/" itemprop="url" rel="index">
-                    <span itemprop="name">tech_blog</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p><strong>note</strong></p>
-<ul>
-<li>容错推送工具的设计</li>
-<li>潜在bug以及问题的处理</li>
-</ul>
-<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>目前gamebar有4亿个kv数据需要同步到新的数据库,项目组希望能尽快完成数据的导入，并且保证数据的完整性和正确，实时数据已经通过流水实时同步到新的数据库，此工具是完成历史数据的导入，对于更新时间戳新于历史数据的不予同步，如此可保证数据的正确性和完整性</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/04/14/toolThinking/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
+    <div class="post-spread">
       
     </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
   </div>
-  
-  
-  
-  </article>
-
-
-    
-  </section>
-
-  
 
 
           </div>
@@ -696,6 +456,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -716,8 +480,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -801,6 +574,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#序"><span class="nav-text">序</span></a></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#先列下我认为的几种增加可见性方法"><span class="nav-text">先列下我认为的几种增加可见性方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#高可见性的用处"><span class="nav-text">高可见性的用处</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后台可见性的三个方面"><span class="nav-text">后台可见性的三个方面</span></a></li></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -948,6 +737,10 @@
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
