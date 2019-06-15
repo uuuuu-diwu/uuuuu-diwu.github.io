@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="backend,golang,http,perf,tcpdump,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本文主要涉及内容如下  系统负载高的一种可能 如何分析系统负载高 httpc的使用注意">
+<meta name="keywords" content="backend,golang,http,perf,tcpdump">
+<meta property="og:type" content="article">
+<meta property="og:title" content="httpc 的链接池在multi microThread中失效引起高负载">
+<meta property="og:url" content="http://yoursite.com/2019/06/15/high-cpu-load/index.html">
+<meta property="og:site_name" content="pinewu&#39;s tech blog">
+<meta property="og:description" content="本文主要涉及内容如下  系统负载高的一种可能 如何分析系统负载高 httpc的使用注意">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-06-15T05:20:15.240Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="httpc 的链接池在multi microThread中失效引起高负载">
+<meta name="twitter:description" content="本文主要涉及内容如下  系统负载高的一种可能 如何分析系统负载高 httpc的使用注意">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/06/15/high-cpu-load/">
+
+
+
+
+
+  <title>httpc 的链接池在multi microThread中失效引起高负载 | pinewu's tech blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">pinewu's tech blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">自强不息 厚德载物</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/15/high-cpu-load/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="pinewu">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/image/siteAvatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="pinewu's tech blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">httpc 的链接池在multi microThread中失效引起高负载</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-15T11:00:18+08:00">
+                2019-06-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/tech-blog/" itemprop="url" rel="index">
+                    <span itemprop="name">tech_blog</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>本文主要涉及内容如下</strong></p>
+<ol>
+<li>系统负载高的一种可能</li>
+<li>如何分析系统负载高</li>
+<li>httpc的使用注意<a id="more"></a></li>
+</ol>
+<p><strong>需要的pre知识</strong></p>
+<ol>
+<li>tcpdump 的使用</li>
+<li>tcp 三次握手，四次挥手的具体表现</li>
+<li>linux perf的使用</li>
+<li>连接池</li>
+</ol>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>之前有一个离线任务是同步一些历史数据到新的数据库,这个数据库不在我们部门,对方提供了一个cgi的写数据存储的接口. 我最初的想法就是用go简单写一个, 写一个发请求的函数func handle,然后起for i in n { go handle } . 这样很简单就实现了并发请求.</p>
+<h2 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h2><p>但是当我跑这个程序的时候,cpu非常高. 下面先说下条件</p>
+<h3 id="条件"><a href="#条件" class="headerlink" title="条件"></a>条件</h3><ol>
+<li><p>机器信息<br>Architecture:          x86_64<br>CPU op-mode(s):        32-bit, 64-bit<br>Byte Order:            Little Endian<br>CPU(s):                8<br>On-line CPU(s) list:   0-7<br>Thread(s) per core:    1<br>Core(s) per socket:    8<br>Socket(s):             1<br>NUMA node(s):          1<br>Vendor ID:             GenuineIntel<br>CPU family:            6<br>Model:                 94<br>Model name:            Intel(R) Xeon(R) Gold 61xx CPU<br>Stepping:              3<br>CPU MHz:               2494.140<br>BogoMIPS:              4988.28<br>Hypervisor vendor:     KVM<br>Virtualization type:   full<br>L1d cache:             32K<br>L1i cache:             32K<br>L2 cache:              4096K<br>NUMA node0 CPU(s):     0-7</p>
+</li>
+<li><p>50 个microThread</p>
+</li>
+<li><p>一次处理延迟15 ms左右</p>
+</li>
+<li><p>稳定请求qps = 50000 q/min</p>
+</li>
+<li><p>cpu : 30 % ~ 600 % 间循环波动</p>
+</li>
+<li><p>程序基本信息: 一个微线程 读取本地key列表文件, push到 chan, 50 个worker 微线程从chan 中读取key 后，根据key发出请求. 请求函数如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">func httpPost(qzCtx *svrCtx.Context,syncReq *SyncReq) int&#123;</span><br><span class="line">	if len(syncReq.Use_records) &lt;= 0 &#123;</span><br><span class="line">		return 0</span><br><span class="line">	&#125;</span><br><span class="line">	hc := httpc.New()</span><br><span class="line">	hc.SetJSONBody(syncReq)</span><br><span class="line">	sTime := time.Now()</span><br><span class="line">	_,err := hc.Do(qzCtx)</span><br><span class="line">	if err != nil&#123;</span><br><span class="line">		qzCtx.Fatal(&quot;do http err = %v&quot;,err)</span><br><span class="line">		return -1</span><br><span class="line">	&#125;</span><br><span class="line">	type RspStruct struct&#123;</span><br><span class="line">		Ret int</span><br><span class="line">		Msg interface&#123;&#125;</span><br><span class="line">		Err_records interface&#123;&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	var dat RspStruct</span><br><span class="line">	err = hc.GetJSONBody(&amp;dat);if err != nil&#123;</span><br><span class="line">		qzCtx.Fatal(&quot;get http rsp err %v&quot;,err)</span><br><span class="line">		return -1</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	if dat.Ret != 0&#123;</span><br><span class="line">		qzCtx.Fatal(&quot;http fail rsp = %v,uin = %s&quot;,dat,syncReq.Use_records[0].Uid)</span><br><span class="line">		return dat.Ret</span><br><span class="line">	&#125;else&#123;</span><br><span class="line">		return 0</span><br><span class="line">	&#125;</span><br><span class="line">	return 0</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<p>7 perf结果:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">-  64.96%  WanbaDataSync  [kernel.kallsyms]    [k] _raw_spin_lock</span><br><span class="line">    - _raw_spin_lock</span><br><span class="line">        + 64.71% __inet_hash_connect</span><br><span class="line">        + 34.60% __inet_check_established</span><br><span class="line">        + 0.66% inet_hash_connect</span><br><span class="line">+  17.49%  WanbaDataSync  [kernel.kallsyms]    [k] __inet_check_established</span><br><span class="line">+   9.89%  WanbaDataSync  [kernel.kallsyms]    [k] __inet_hash_connect</span><br><span class="line">+   3.16%  WanbaDataSync  [kernel.kallsyms]    [k] tcp_twsk_unique</span><br></pre></td></tr></table></figure>
+
+<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><ol>
+<li>看到这个perf结果,我第一反应就是 wtf ? 这么低的qps , 凭什么这么多cpu花在tcp 连接相关的函数上了. </li>
+</ol>
+<ol start="2">
+<li><p>系统的绝大部分时间花在spin_lock上了, 50个微线程竞争 port 导致了cpu高</p>
+</li>
+<li><p>这说明系统肯定在大量connect和close</p>
+</li>
+<li><p>http是有长链接版的, go的httpc是否也有连接池或者长链接呢?</p>
+</li>
+<li><p>上官网查, 结果发现tcp是有连接池的, 那这个httpc应该也是有连接池的?</p>
+</li>
+<li><p>但是perf的结果告诉我们不是这样的, 那来抓包咯</p>
+</li>
+<li><p>sudo tcpdump -iany port 10121 -Xnlps0 | grep “\[F\.\]”  我只要抓到fin包就可以知道close函数的调用信息了. 如果真的有连接池,那么fin包必然是很少的,结果我这个命令一敲下去,fin包就刷屏了. 这说明我的猜测初步是正确的,但是文档上说有连接池，肯定也不会骗我,估计是我哪里用错了, 那再整一个简单版的实验一下. fin包就是tcp协议中的四次挥手的时候会出现的一种协议包，一般来说close system call会弄出这种包.</p>
+</li>
+</ol>
+<h2 id="htpc-test"><a href="#htpc-test" class="headerlink" title="htpc test"></a>htpc test</h2><p>这里放两个版本,一个是单线程循环发包, 一个是10线程并发发包, 然后再来抓包看fin包的情况</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">func Doreq(syncReq *SyncReq) int&#123;</span><br><span class="line">	if len(syncReq.Use_records) &lt;= 0 &#123;</span><br><span class="line">		return 0</span><br><span class="line">	&#125;</span><br><span class="line">	hc := httpc.New()</span><br><span class="line">	hc.SetJSONBody(syncReq)</span><br><span class="line">	_,err := hc.Do(context.Background())</span><br><span class="line">	if err != nil&#123;</span><br><span class="line">		fmt.Printf(&quot;do http err = %v&quot;,err)</span><br><span class="line">		return -1</span><br><span class="line">	&#125;</span><br><span class="line">	type RspStruct struct&#123;</span><br><span class="line">		Ret int</span><br><span class="line">		Msg interface&#123;&#125;</span><br><span class="line">		Err_records interface&#123;&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	var dat RspStruct</span><br><span class="line">	err = hc.GetJSONBody(&amp;dat);if err != nil&#123;</span><br><span class="line">		fmt.Printf(&quot;get http rsp err %v&quot;,err)</span><br><span class="line">		return -1</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	if dat.Ret != 0&#123;</span><br><span class="line">		fmt.Printf(&quot;http fail rsp = %v,uin = %s&quot;,dat,syncReq.Use_records[0].Uid)</span><br><span class="line">		return dat.Ret</span><br><span class="line">	&#125;</span><br><span class="line">	return 0</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func main()&#123;</span><br><span class="line">	ele := OneEle&#123;&quot;834425151&quot;,&quot;123456&quot;,1552800702&#125;</span><br><span class="line">	req := SyncReq&#123;&#125;</span><br><span class="line">	req.Use_records = append(req.Use_records,ele)</span><br><span class="line">	for i := 0; i &lt; 10;i++ &#123;</span><br><span class="line">        //这个地方，单线程版的，去掉go编译即可</span><br><span class="line">		go Doreq(&amp;req)</span><br><span class="line">	&#125;</span><br><span class="line">	time.Sleep(time.Second * 3)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>抓包命令:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo tcpdump -iany port 10121 -Xnlps0 | grep &quot;\[F\.\]&quot;</span><br></pre></td></tr></table></figure>
+
+<p>单线程的抓包结果</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">13:44:00.832192 IP 9.137.218.46.41582 &gt; 9.137.182.90.10121: Flags [F.], seq 1065, ack 645, win 37, length 0</span><br><span class="line">13:44:00.832207 IP 9.137.218.46.21216 &gt; 10.101.83.143.10121: Flags [F.], seq 802, ack 484, win 35, length 0</span><br><span class="line">13:44:00.832223 IP 9.137.218.46.44976 &gt; 10.101.82.89.10121: Flags [F.], seq 799, ack 484, win 35, length 0</span><br><span class="line">13:44:00.832453 IP 9.137.182.90.10121 &gt; 9.137.218.46.41582: Flags [F.], seq 645, ack 1066, win 74, length 0</span><br><span class="line">13:44:00.832878 IP 10.101.83.143.10121 &gt; 9.137.218.46.21216: Flags [F.], seq 484, ack 803, win 70, length 0</span><br><span class="line">13:44:00.832896 IP 10.101.82.89.10121 &gt; 9.137.218.46.44976: Flags [F.], seq 484, ack 800, win 70, length 0</span><br></pre></td></tr></table></figure>
+
+<p>多线程的抓包结果</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">13:47:11.219686 IP 9.137.218.46.45093 &gt; 10.101.82.89.10121: Flags [F.], seq 267, ack 162, win 31, length 0</span><br><span class="line">13:47:11.219985 IP 9.137.218.46.21335 &gt; 10.101.83.143.10121: Flags [F.], seq 268, ack 162, win 31, length 0</span><br><span class="line">13:47:11.220390 IP 10.101.82.89.10121 &gt; 9.137.218.46.45093: Flags [F.], seq 162, ack 268, win 62, length 0</span><br><span class="line">13:47:11.220601 IP 10.101.83.143.10121 &gt; 9.137.218.46.21335: Flags [F.], seq 162, ack 269, win 62, length 0</span><br><span class="line">13:47:11.221653 IP 9.137.218.46.21332 &gt; 10.101.83.143.10121: Flags [F.], seq 268, ack 162, win 31, length 0</span><br><span class="line">13:47:11.222266 IP 10.101.83.143.10121 &gt; 9.137.218.46.21332: Flags [F.], seq 162, ack 269, win 62, length 0</span><br><span class="line">13:47:11.227169 IP 9.137.218.46.41700 &gt; 9.137.182.90.10121: Flags [F.], seq 267, ack 162, win 31, length 0</span><br><span class="line">13:47:11.227328 IP 9.137.182.90.10121 &gt; 9.137.218.46.41700: Flags [F.], seq 162, ack 268, win 62, length 0</span><br><span class="line">13:47:14.208108 IP 9.137.218.46.45089 &gt; 10.101.82.89.10121: Flags [F.], seq 267, ack 162, win 31, length 0</span><br><span class="line">13:47:14.208127 IP 9.137.218.46.21331 &gt; 10.101.83.143.10121: Flags [F.], seq 268, ack 162, win 31, length 0</span><br><span class="line">13:47:14.208130 IP 9.137.218.46.41706 &gt; 9.137.182.90.10121: Flags [F.], seq 267, ack 162, win 31, length 0</span><br><span class="line">13:47:14.208133 IP 9.137.218.46.45095 &gt; 10.101.82.89.10121: Flags [F.], seq 267, ack 162, win 31, length 0</span><br><span class="line">13:47:14.208137 IP 9.137.218.46.41704 &gt; 9.137.182.90.10121: Flags [F.], seq 267, ack 162, win 31, length 0</span><br><span class="line">13:47:14.208139 IP 9.137.218.46.21338 &gt; 10.101.83.143.10121: Flags [F.], seq 268, ack 162, win 31, length 0</span><br><span class="line">13:47:14.208428 IP 9.137.182.90.10121 &gt; 9.137.218.46.41706: Flags [F.], seq 162, ack 268, win 62, length 0</span><br><span class="line">13:47:14.208449 IP 9.137.182.90.10121 &gt; 9.137.218.46.41704: Flags [F.], seq 162, ack 268, win 62, length 0</span><br><span class="line">13:47:14.208827 IP 10.101.82.89.10121 &gt; 9.137.218.46.45089: Flags [F.], seq 162, ack 268, win 62, length 0</span><br><span class="line">13:47:14.208836 IP 10.101.83.143.10121 &gt; 9.137.218.46.21331: Flags [F.], seq 162, ack 269, win 62, length 0</span><br><span class="line">13:47:14.208842 IP 10.101.82.89.10121 &gt; 9.137.218.46.45095: Flags [F.], seq 162, ack 268, win 62, length 0</span><br><span class="line">13:47:14.208881 IP 10.101.83.143.10121 &gt; 9.137.218.46.21338: Flags [F.], seq 162, ack 269, win 62, length 0</span><br></pre></td></tr></table></figure>
+
+<p>可以看到,在单线程的时候, httpc 确实只发出了少量的fin包,那说明复用了链接,也就是连接池起作用了,但是在多线程的时候, httpc一共发出去10个fin包，和代码中写的10个请求正好相等,这说明连接池完全没起作用</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/backend/" rel="tag"># backend</a>
+          
+            <a href="/tags/golang/" rel="tag"># golang</a>
+          
+            <a href="/tags/http/" rel="tag"># http</a>
+          
+            <a href="/tags/perf/" rel="tag"># perf</a>
+          
+            <a href="/tags/tcpdump/" rel="tag"># tcpdump</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/14/toolThinking/" rel="next" title="push工具实践">
+                <i class="fa fa-chevron-left"></i> push工具实践
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/image/siteAvatar.jpg" alt="pinewu">
+            
+              <p class="site-author-name" itemprop="name">pinewu</p>
+              <p class="site-description motion-element" itemprop="description">pinewu@tencent.com</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/uuuuu-diwu" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="diwu@alumni.hust.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://www.google.com/" target="_blank" title="Google">
+                      
+                        <i class="fa fa-fw fa-google"></i>Google</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#遇到的问题"><span class="nav-text">遇到的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#条件"><span class="nav-text">条件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分析"><span class="nav-text">分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#htpc-test"><span class="nav-text">htpc test</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">pinewu</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

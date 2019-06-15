@@ -5,7 +5,7 @@
   
 
 
-<html class="theme-next pisces use-motion" lang="zh-Hans">
+<html class="theme-next pisces use-motion" lang>
 <head><meta name="generator" content="Hexo 3.8.0">
   <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="backend,">
+  <meta name="keywords" content="backend,golang,push,">
 
 
 
@@ -80,15 +80,15 @@
 
 
 <meta name="description" content="note  容错推送工具的设计 潜在bug以及问题的处理  背景目前gamebar有4亿个kv数据需要同步到新的数据库,项目组希望能尽快完成数据的导入，并且保证数据的完整性和正确，实时数据已经通过流水实时同步到新的数据库，此工具是完成历史数据的导入，对于更新时间戳新于历史数据的不予同步，如此可保证数据的正确性和完整性">
-<meta name="keywords" content="backend">
+<meta name="keywords" content="backend,golang,push">
 <meta property="og:type" content="article">
 <meta property="og:title" content="push工具实践">
 <meta property="og:url" content="http://yoursite.com/2019/04/14/toolThinking/index.html">
 <meta property="og:site_name" content="pinewu&#39;s tech blog">
 <meta property="og:description" content="note  容错推送工具的设计 潜在bug以及问题的处理  背景目前gamebar有4亿个kv数据需要同步到新的数据库,项目组希望能尽快完成数据的导入，并且保证数据的完整性和正确，实时数据已经通过流水实时同步到新的数据库，此工具是完成历史数据的导入，对于更新时间戳新于历史数据的不予同步，如此可保证数据的正确性和完整性">
-<meta property="og:locale" content="zh-Hans">
+<meta property="og:locale" content="default">
 <meta property="og:image" content="http://yoursite.com/image/raw.png">
-<meta property="og:updated_time" content="2019-06-15T02:18:13.297Z">
+<meta property="og:updated_time" content="2019-06-15T05:20:43.382Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="push工具实践">
 <meta name="twitter:description" content="note  容错推送工具的设计 潜在bug以及问题的处理  背景目前gamebar有4亿个kv数据需要同步到新的数据库,项目组希望能尽快完成数据的导入，并且保证数据的完整性和正确，实时数据已经通过流水实时同步到新的数据库，此工具是完成历史数据的导入，对于更新时间戳新于历史数据的不予同步，如此可保证数据的正确性和完整性">
@@ -108,7 +108,7 @@
     motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
     duoshuo: {
       userId: '0',
-      author: '博主'
+      author: 'Author'
     },
     algolia: {
       applicationID: '',
@@ -140,7 +140,7 @@
 
 </head>
 
-<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
 
   
   
@@ -188,7 +188,27 @@
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
             
-            首页
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
           </a>
         </li>
       
@@ -198,7 +218,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
             
-            归档
+            Archives
           </a>
         </li>
       
@@ -240,7 +260,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="pinewu">
       <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/image/siteAvatar.jpg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -262,9 +282,9 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">发表于</span>
+                <span class="post-meta-item-text">Posted on</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-14T20:25:58+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-04-14T20:25:58+08:00">
                 2019-04-14
               </time>
             
@@ -274,6 +294,28 @@
             
           </span>
 
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/tech-blog/" itemprop="url" rel="index">
+                    <span itemprop="name">tech_blog</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -384,6 +426,10 @@
           
             <a href="/tags/backend/" rel="tag"># backend</a>
           
+            <a href="/tags/golang/" rel="tag"># golang</a>
+          
+            <a href="/tags/push/" rel="tag"># push</a>
+          
         </div>
       
 
@@ -391,6 +437,22 @@
       
       
 
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/15/high-cpu-load/" rel="prev" title="httpc 的链接池在multi microThread中失效引起高负载">
+                httpc 的链接池在multi microThread中失效引起高负载 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
       
 
       
@@ -441,10 +503,10 @@
       
         <ul class="sidebar-nav motion-element">
           <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            文章目录
+            Table of Contents
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            站点概览
+            Overview
           </li>
         </ul>
       
@@ -452,6 +514,8 @@
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/image/siteAvatar.jpg" alt="pinewu">
             
               <p class="site-author-name" itemprop="name">pinewu</p>
               <p class="site-description motion-element" itemprop="description">pinewu@tencent.com</p>
@@ -464,22 +528,31 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">1</span>
-                  <span class="site-state-item-name">日志</span>
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">posts</span>
                 </a>
               </div>
             
 
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
             
 
             
               
               
               <div class="site-state-item site-state-tags">
-                
-                  <span class="site-state-item-count">1</span>
-                  <span class="site-state-item-name">标签</span>
-                
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
               </div>
             
 
@@ -487,6 +560,28 @@
 
           
 
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/uuuuu-diwu" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="diwu@alumni.hust.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://www.google.com/" target="_blank" title="Google">
+                      
+                        <i class="fa fa-fw fa-google"></i>Google</a>
+                  </span>
+                
+            </div>
           
 
           
@@ -510,7 +605,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-text">背景</span></a></li></ol></div>
             
 
           </div>
@@ -540,7 +635,7 @@
 </div>
 
 
-  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
 
 
 
@@ -548,7 +643,7 @@
 
 
 
-  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
 
 
 
@@ -595,6 +690,8 @@
   
 
 
+  
+
 
 
 
@@ -633,6 +730,11 @@
   
   
     <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
   
 
 
