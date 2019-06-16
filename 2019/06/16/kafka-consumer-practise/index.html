@@ -88,8 +88,8 @@
 <meta property="og:description" content="kafka consumer 实践 kafka的简介 提高消费速度 遇到的坑  你肯定难以想象有人要用kafka event flow 来实现游戏在线时间的计算，但是还真有人因为懒然后设计了这么一种方案，我真想骂他们这群老逼，代码不是你写，你当然不care啊。。。。">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://yoursite.com/image/un_consum.png">
-<meta property="og:image" content="http://yoursite.com/image%5Ckafka_produce_cnt.png">
-<meta property="og:updated_time" content="2019-06-16T05:04:20.591Z">
+<meta property="og:image" content="http://yoursite.com/image/kafka_produce_cnt.png">
+<meta property="og:updated_time" content="2019-06-16T05:05:24.576Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="kafka_consumer_practise">
 <meta name="twitter:description" content="kafka consumer 实践 kafka的简介 提高消费速度 遇到的坑  你肯定难以想象有人要用kafka event flow 来实现游戏在线时间的计算，但是还真有人因为懒然后设计了这么一种方案，我真想骂他们这群老逼，代码不是你写，你当然不care啊。。。。">
@@ -378,7 +378,7 @@
 <p>我在需求开始前就问过了生产方 “多大的量啊，峰值1s多少次写入”，结果那边说目前没有这种数据，因为你接收的只是游戏类型app的数据，我这里只有所有app数据的写入量，你自己问产品看能有多少量吧。我他妈真是日了狗了啊，这做你ma呢。然后我心想算了，无非加消费者，怕个毛。我一开始只放了大概2个消费实例，我看也没有消息堆积，然后自测也OK了，然后生产那边这时说一句“那我放量了啊，我把版本发到所有的机器上”。。我顿时呆了“原来你这个坑货一直都只是发布了一部分机器啊，那我消费的都是啥？不全的数据？阉割后的量级？我这没有消息堆积完全就是假象啊”。心想，行吧，你放量，我观察下，扛不住就加线程呗。结果那个老逼一波操作，我这边直接炸了，消息堆积数暴涨！！！！赶紧加线程，加到了20个线程，未消费消息数终于开始下降了，心想完美，这个需求做完了。</p>
 <p>结果到了第二天，我手机就被kafka告警信息爆了，我一看监控就惊呆了。生产峰值流量涨了6倍，我立刻找到了平台后台开发问他们在搞什么鬼，然后被告知“有游戏闪屏放量，涨个6倍不要太正常”。</p>
 <p><img src="/image/un_consum.png" alt></p>
-<p><img src="/image%5Ckafka_produce_cnt.png" alt></p>
+<p><img src="/image/kafka_produce_cnt.png" alt></p>
 <p>6倍。。。。。。6倍。。。。。。尼玛，我把消费线程加到顶50个也扛不住这种量啊。然后产品又说之后做活动应该差不多15倍的量吧。。。。我心想这群家伙合伙搞我，但是这要是出事了肯定我背锅，我得赶紧想办法解决了。</p>
 <h2 id="提高消费速度"><a href="#提高消费速度" class="headerlink" title="提高消费速度"></a>提高消费速度</h2><ul>
 <li>加partition，因为消费者数量受限于partition数量，所以我最直接的想法就是加 partition, 无非多花点钱买高配置版（反正不是我的钱），我才不愿意改代码，改了又得重新测试。</li>
