@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="backend,tracing,logging,">
+  <meta name="keywords" content="backend,Disaster_tolerance,">
 
 
 
@@ -79,21 +79,18 @@
 
 
 
-<meta name="description" content="序来腾讯做后台也将近一年了，发过许多版本，查过很多问题，有半夜被成功率掉0，服务高负载 搞过，踩过一些坑。如果让我总结后台开发比较重要的一些点，我觉得肯定有系统的可见性Visibility，他真的非常重要。应该说任何 7 * 24 运行的系统都是这样的，无监控不7 * 24">
-<meta name="keywords" content="backend,tracing,logging">
+<meta name="description" content="后台灾备与异常处理 profilevisitor 备忘  容灾简介  存储层的容灾备忘  业务层容灾备忘   profilevisitor 备忘profile visitor 从项目启动到最终灰度上线用时一个月，后台开发两人。我第一个活跃用户上亿的项目，第一个入口峰值QPS过4W的项目，如果从逻辑上来说，确实就是CRUD，而我也只是一个CRUD BOY.，但是经过这个项目，我才理解到后台的难点是容">
+<meta name="keywords" content="backend,Disaster_tolerance">
 <meta property="og:type" content="article">
-<meta property="og:title" content="后台系统的可见性">
-<meta property="og:url" content="http://yoursite.com/2019/06/15/back-Visibility/index.html">
+<meta property="og:title" content="Disaster_tolerance">
+<meta property="og:url" content="http://yoursite.com/2019/06/26/Disaster-tolerance/index.html">
 <meta property="og:site_name" content="吳迪的雜談">
-<meta property="og:description" content="序来腾讯做后台也将近一年了，发过许多版本，查过很多问题，有半夜被成功率掉0，服务高负载 搞过，踩过一些坑。如果让我总结后台开发比较重要的一些点，我觉得肯定有系统的可见性Visibility，他真的非常重要。应该说任何 7 * 24 运行的系统都是这样的，无监控不7 * 24">
+<meta property="og:description" content="后台灾备与异常处理 profilevisitor 备忘  容灾简介  存储层的容灾备忘  业务层容灾备忘   profilevisitor 备忘profile visitor 从项目启动到最终灰度上线用时一个月，后台开发两人。我第一个活跃用户上亿的项目，第一个入口峰值QPS过4W的项目，如果从逻辑上来说，确实就是CRUD，而我也只是一个CRUD BOY.，但是经过这个项目，我才理解到后台的难点是容">
 <meta property="og:locale" content="default">
-<meta property="og:image" content="http://yoursite.com/image/backend_vis.png">
-<meta property="og:image" content="http://yoursite.com/image/backend_vis2.png">
-<meta property="og:updated_time" content="2019-06-15T07:11:28.120Z">
+<meta property="og:updated_time" content="2019-07-13T09:24:37.198Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="后台系统的可见性">
-<meta name="twitter:description" content="序来腾讯做后台也将近一年了，发过许多版本，查过很多问题，有半夜被成功率掉0，服务高负载 搞过，踩过一些坑。如果让我总结后台开发比较重要的一些点，我觉得肯定有系统的可见性Visibility，他真的非常重要。应该说任何 7 * 24 运行的系统都是这样的，无监控不7 * 24">
-<meta name="twitter:image" content="http://yoursite.com/image/backend_vis.png">
+<meta name="twitter:title" content="Disaster_tolerance">
+<meta name="twitter:description" content="后台灾备与异常处理 profilevisitor 备忘  容灾简介  存储层的容灾备忘  业务层容灾备忘   profilevisitor 备忘profile visitor 从项目启动到最终灰度上线用时一个月，后台开发两人。我第一个活跃用户上亿的项目，第一个入口峰值QPS过4W的项目，如果从逻辑上来说，确实就是CRUD，而我也只是一个CRUD BOY.，但是经过这个项目，我才理解到后台的难点是容">
 
 
 
@@ -123,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/06/15/back-Visibility/">
+  <link rel="canonical" href="http://yoursite.com/2019/06/26/Disaster-tolerance/">
 
 
 
 
 
-  <title>后台系统的可见性 | 吳迪的雜談</title>
+  <title>Disaster_tolerance | 吳迪的雜談</title>
   
 
 
@@ -256,7 +253,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/15/back-Visibility/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/26/Disaster-tolerance/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="pinewu">
@@ -273,7 +270,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">后台系统的可见性</h1>
+          <h1 class="post-title" itemprop="name headline">Disaster_tolerance</h1>
         
 
         <div class="post-meta">
@@ -285,8 +282,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-15T14:06:51+08:00">
-                2019-06-15
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-26T09:00:27+08:00">
+                2019-06-26
               </time>
             
 
@@ -345,75 +342,96 @@
       
 
       
-        <h3 id="序"><a href="#序" class="headerlink" title="序"></a>序</h3><p>来腾讯做后台也将近一年了，发过许多版本，查过很多问题，有半夜被成功率掉0，服务高负载 搞过，踩过一些坑。如果让我总结后台开发比较重要的一些点，我觉得肯定有系统的可见性Visibility，他真的非常重要。应该说任何 7 * 24 运行的系统都是这样的，无监控不7 * 24</p>
-<a id="more"></a>
-<p>本文参考tx 同事 unlikezhang 的 《后台系统可见性衡量》, Peter Bourgon 《Metrics, tracing, and logging》 </p>
-<h2 id="先列下我认为的几种增加可见性方法"><a href="#先列下我认为的几种增加可见性方法" class="headerlink" title="先列下我认为的几种增加可见性方法"></a>先列下我认为的几种增加可见性方法</h2><p><strong>log</strong></p>
-<table>
-<thead>
-<tr>
-<th>methond</th>
-<th>desc</th>
-<th>优点</th>
-<th>缺点</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>printf类</td>
-<td>学生时代写一次性程序常用</td>
-<td>非常简单</td>
-<td>输出信息无法长久保存，刷屏。几乎不能用于生产。</td>
-</tr>
-<tr>
-<td>local log类</td>
-<td>把 log 打在本地</td>
-<td>简单，有保存</td>
-<td>线上环境几乎只有error log，log分散在集群中每一台机器</td>
-</tr>
-<tr>
-<td>专门的log服务</td>
-<td>把log输出到专门的log-agent后发送到存储集群</td>
-<td>可全量log，支持染色后全量log</td>
-<td>需要专门的服务来做这件事(根本不是缺点)</td>
-</tr>
-</tbody></table>
-<p><strong>statistic</strong></p>
-<table>
-<thead>
-<tr>
-<th>methond</th>
-<th>desc</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>属性计数</td>
-<td>针对单个属性的数值记录，如cpu负载，磁盘使用量，当前进程数，访问量，入流量等。是kv级别的监控，可以在程序中添加关注的属性的监控，自行进行加上报操作</td>
-</tr>
-<tr>
-<td>调用统计</td>
-<td>统计每次外部调用的callerId,calleeId, ip, delay , retcode , isSuccess。并以此为基础分析服务运行情况</td>
-</tr>
-</tbody></table>
-<p>以上列出了常见的 5 中观察系统运行情况的方式 , log类比较细，基本在代码层面了。statistic层比较大，多在系统层面，所以常见的告警都是利用statistic 层面的数据进行规则匹配的</p>
-<h2 id="高可见性的用处"><a href="#高可见性的用处" class="headerlink" title="高可见性的用处"></a>高可见性的用处</h2><p>一般的查问题的方法都是<br>外网投诉 / 告警 —-&gt; 开发者 —-&gt; 查看相关监控数据，观察各项指标 —–&gt; 去log系统捞log —–&gt; 上机器grep log或者tail log —-&gt; 分析问题 —–&gt; 定位到问题 —- 解决问题</p>
-<p>问题的解决其实和破案的过程非常像，定位问题是最重要的，而定位问题就需要我们的系统足够可见，不然定位问题无从谈起。</p>
-<h2 id="后台可见性的三个方面"><a href="#后台可见性的三个方面" class="headerlink" title="后台可见性的三个方面"></a>后台可见性的三个方面</h2><p>Peter Bourgon 在他的文章中提出了系统可见性的三个词 [Metrics, tracing, logging]. </p>
-<p><img src="/image/backend_vis.png" alt></p>
-<p>以下是原文</p>
-<p>metrics :</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">I think that the defining characteristic of metrics is that they are </span><br><span class="line">aggregatable: they are the atoms that compose into a single logical gauge, </span><br><span class="line">counter, or histogram over a span of time. As examples: the current depth of a </span><br><span class="line">queue could be modeled as a gauge, whose updates aggregate with last-writer-win semantics; </span><br><span class="line">the number of incoming HTTP requests could be modeled as a counter, whose updates aggregate </span><br><span class="line">by simple addition; and the observed duration of a request could be modeled into a histogram, </span><br><span class="line">whose updates aggregate into time-buckets and yield statistical summaries.</span><br></pre></td></tr></table></figure>
-
-<p>logging :</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">I think that the defining characteristic of logging is that it deals with discrete events. </span><br><span class="line">As examples: application debug or error messages emitted via a rotated file descriptor through </span><br><span class="line">syslog to Elasticsearch (or OK Log, nudge nudge); audit-trail events pushed through Kafka to a </span><br><span class="line">data lake like BigTable; or request-specific metadata pulled from a service call and sent to </span><br><span class="line">an error tracking service like NewRelic.</span><br></pre></td></tr></table></figure>
-
-<p>tracing :</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">I think that the single defining characteristic of tracing, then, is that it deals with information </span><br><span class="line">that is request-scoped. Any bit of data or metadata that can be bound to lifecycle of a single </span><br><span class="line">transactional object in the system. As examples: the duration of an outbound RPC to a remote </span><br><span class="line">service; the text of an actual SQL query sent to a database; or the correlation ID of an inbound HTTP request.</span><br></pre></td></tr></table></figure>
-
-<p><img src="/image/backend_vis2.png" alt></p>
-<p>其实 Peter Bourgon 所说的 metrics 应该和我说的系统级别的 statistic 是差不多的，这个级别的可见性，应该是记录一些 counter , 或者一些统计量，监控系统最好能以实时统计图的方式给出他们的表现，这个级别的是一个 statistical summaries .</p>
-<p>而logging主要就是程序自行输出的运行日志，按我的理解 tracing 是针对请求级别，包括上游链路，下游链路上所有log针对此次处理的Log，当然这种最好就是全量Log,一般由专门的log server完成这些服务，一般是只针对染色后的用户。</p>
-<p>##总结</p>
-<p>详细而好用又不失性能的监控其实是很难的，当然以后设计时，应该往metrics , logging , tracing 三个方面去想, 每个方面都需要做设计，不可顾此失彼，只有这样建立的监控才是立体的，有效的</p>
+        <h2 id="后台灾备与异常处理"><a href="#后台灾备与异常处理" class="headerlink" title="后台灾备与异常处理"></a>后台灾备与异常处理</h2><ul>
+<li><p>profilevisitor 备忘</p>
+</li>
+<li><p>容灾简介</p>
+</li>
+<li><p>存储层的容灾备忘</p>
+</li>
+<li><p>业务层容灾备忘</p>
+</li>
+</ul>
+<h2 id="profilevisitor-备忘"><a href="#profilevisitor-备忘" class="headerlink" title="profilevisitor 备忘"></a>profilevisitor 备忘</h2><p>profile visitor 从项目启动到最终灰度上线用时一个月，后台开发两人。我第一个活跃用户上亿的项目，第一个入口峰值QPS过4W的项目，如果从逻辑上来说，确实就是CRUD，而我也只是一个CRUD BOY.，但是经过这个项目，我才理解到后台的难点是容灾与各种异常的处理，立体监控的建立，万分之一的错误率有时候也是不可容忍的。</p>
+<h3 id="脚印部分"><a href="#脚印部分" class="headerlink" title="脚印部分"></a>脚印部分</h3><p>脚印是仿照空间访客做的，其实和整个系统的耦合程度很低，非常独立，基本可以理解为空间访客系统的简化版，但核心功能都在，由于直接用的微线程c++ 和 ckv作为支撑，所以就算没有布隆过滤器做挡量，整体负载也还可以接受。因为这部分在上线这么久来没让我们特别烦心过，所以在此不再过多描述</p>
+<h3 id="热度部分"><a href="#热度部分" class="headerlink" title="热度部分"></a>热度部分</h3><ul>
+<li><p>整体架构设计混乱</p>
+<p>目前线上跑的热度系统其实内部比较混乱，热度逻辑和脚印逻辑还有系统接入svr的逻辑混到一起去了，所以没有一个真正的热度svr，当时的考虑是，热度其实就是存储，每个svr直接操纵存储可以提高性能。现在看来这个想法是彻底错误的，让每个svr都操纵存储，其实就是把底层数据接口暴露给了每个svr，这样其实就是把耦合扩散了，很像写c++ 写了个class,然后全体成员public , 这种过多的暴露，必然导致后期维护的困难和扩展的困难（为啥会这样呢？Q1)</p>
+</li>
+<li><p>proxy_svr只应该做分发，过滤，身份附带等很基础的逻辑</p>
+<p>比如一个访客可以加热度，现在线上的逻辑就是 客户端 —-&gt; proxy_svr—–&gt; foot_system —–&gt; hot_add</p>
+<p>这个地方最大的问题就是 proxy_svr 直接操纵了 redis 写未读计数，读了 redis 热度计数。这个问题就很大了，把这些逻辑耦合在一起导致 proxy_svr  的代码立马变的恶心无比。现在想来proxy_svr 就只应该做这几件事</p>
+<ol>
+<li>安全打击</li>
+<li>增值位读取并携带给下游svr</li>
+<li>频率控制</li>
+</ol>
+<p>但是实际上这个svr现在做了什么呢？</p>
+<ol>
+<li>身份位判断</li>
+<li>安全打击</li>
+<li>读写redis (万恶之源啊，逻辑从此开始高度耦合了)</li>
+</ol>
+</li>
+<li><p>网页逻辑层不应该嵌入热度存储的逻辑</p>
+<p>这个svr 主要为热度h5页面服务</p>
+<ol>
+<li>拉取访客信息</li>
+<li>拉取热度信息，包括热度计数，新增计数，热度排行信息</li>
+<li>拉取封面信息</li>
+<li>拉取nick , 身份等信息</li>
+<li>拉取赞信息</li>
+</ol>
+<p>这个svr不应该有过多的逻辑，而只应该是拉取各种信息，然后进行聚合后返回给前端</p>
+</li>
+<li><p>应该有一个专门的热度svr来整合热度的各种逻辑</p>
+<ol>
+<li>热度增加，这里需要考虑的是指定身份加计数还是直接加计数</li>
+<li>热度增加记录，方便查问题</li>
+<li>热度未读计数的读写</li>
+<li>热度红点的读写</li>
+<li>可由客户端直接访问进行读取热度各种信息（读取操作时就会消除红点，这样才是合理的）</li>
+<li>可由脚印系统直接访问，然后这个svr内部来做未读计数和红点的逻辑</li>
+</ol>
+</li>
+</ul>
+<h3 id="热度初始值依赖赞数据"><a href="#热度初始值依赖赞数据" class="headerlink" title="热度初始值依赖赞数据"></a>热度初始值依赖赞数据</h3><p>这是一个很严重的问题，这个需求一开始评审的时候没有注意到这个点，做到中途也没意识到这个问题的重要性，等差不多所有代码都写完了，终于意识到了这个点。。。。。坑啊</p>
+<p>因为这个需求需要依赖历史数据，就不能说一点历史包袱都没有。从这里其实可以总结一个教训，就是任何有历史数据依赖的需求都应该考虑的特别细致</p>
+<ol>
+<li>现时数据和历史数据是否存在依赖关系</li>
+<li>依赖关系是一直存在，还是同步过后就不存在</li>
+<li>如何保证这种依赖的正确性 </li>
+<li>访问历史数据的代价有多大，是否支持大量访问</li>
+<li>是否需要考虑数据同步，此步是否可以优化已至忽略，如果不能忽略，如何保证同步的正确，完整，速度</li>
+</ol>
+<p><strong>不过我觉得，做需求尽量避免这种情况的发生吧，能不要历史包袱当然是最好的，何必和过去纠缠不清呢？</strong></p>
+<h3 id="一次性导入赞的历史数据，最终证明代价太大"><a href="#一次性导入赞的历史数据，最终证明代价太大" class="headerlink" title="一次性导入赞的历史数据，最终证明代价太大"></a>一次性导入赞的历史数据，最终证明代价太大</h3><p>当时意识到历史赞数据的时候，是有几种方案的，当然，由于大家好像都没实际搞过，谁也不知道哪种比较好。所以当时就先选择了写一个工具，直接一次把历史数据全导入了，这样的好处就是让历史包袱一次性消失，不影响整体的逻辑，也不用修改业务代码，但是这么明晃晃好处背后可能就是无数暗坑。</p>
+<p><strong><em>uin号码段 10001 — 4000000000 。近40E数据</em></strong></p>
+<p>40E数据一次导入到底意味着什么呢？</p>
+<ol>
+<li>很多人可能只有个位数的赞，而且再也不上线了，就算上线，他们也不care这个特性，根据二八原则，预计30E左右的数据吧，这些数据可能就是垃圾数据，这就是说在业务还没上线前就要准备（浪费）大量的存储资源<ol start="2">
+<li>去拉取赞数据然后写入redis，40E次处理，如何保证最终每个数据都是OK的？错误记录，重试都要做完善啊，这需要工作量的啊，投入大量工作量这里 ，是否划算呢（更主要是没时间）？</li>
+<li>导数据的时间越久，就越容易出问题，进程挂了，网络问题，各种异常。40E数据，2w每秒的推送速度都要导好久。</li>
+</ol>
+</li>
+</ol>
+<h3 id="怪异的架构，导致了诡异的最终方案"><a href="#怪异的架构，导致了诡异的最终方案" class="headerlink" title="怪异的架构，导致了诡异的最终方案"></a>怪异的架构，导致了诡异的最终方案</h3><ol>
+<li>每个人只导入一次数据</li>
+<li>导入后不再需要读取赞数据</li>
+</ol>
+<p>根据以上两点，很容易想到用bitmap，每个号码用一个bit位表示是否同步过数据，当他访问别人的资料卡时，实时同步被访问者的赞数据，然后置位被访问者bitmap。同时又因为bitmap可以顶住超级大的量，这里就把往赞后台的量都挡住了，理论上这是一个很好的方案，但是根据后来的问题来看，事实并不是这样。</p>
+<ol>
+<li>bitmap是内存存储，如果进程挂了，虽然有定时dump，但是这之间的bitmap修改全丢了</li>
+<li>bitmap对于每个用户来说非常重要，bitmap是这个服务的关键路径，影响整体逻辑了，想想如果bitmap数据错误会发生什么，把整个系统的数据正确的安危都系于这个bitmap，这太扯淡了</li>
+<li>不好修复问题，如果有用户数据同步出问题了，这里根本没有记录到底发生了什么，bitmap被置位，但是赞没同步，bitmap没被置位，但是赞数据已经同步了等等情况</li>
+</ol>
+<h3 id="监控的重要性"><a href="#监控的重要性" class="headerlink" title="监控的重要性"></a>监控的重要性</h3><p>平生最恨tcp流式协议，redis协议可能就是其中之一，写一个异步或者微线程的redis接口，就需要理解redis的打解包，redis是基于tcp的，三件事</p>
+<ol>
+<li>编码请求包</li>
+<li>从二进制回包中判断出完整的包，要能处理粘包，不完整包</li>
+<li>正确解析回包</li>
+</ol>
+<p>其中第二点很蛋疼，redis协议并没有哪个字段告诉你接下来有多少字节，你只能根据发了几个cmd来判断会有几个reply，好蠢。</p>
 
       
     </div>
@@ -433,9 +451,7 @@
           
             <a href="/tags/backend/" rel="tag"># backend</a>
           
-            <a href="/tags/tracing/" rel="tag"># tracing</a>
-          
-            <a href="/tags/logging/" rel="tag"># logging</a>
+            <a href="/tags/Disaster-tolerance/" rel="tag"># Disaster_tolerance</a>
           
         </div>
       
@@ -448,8 +464,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/06/15/high-cpu-load/" rel="next" title="httpc 的链接池在multi microThread中失效引起高负载">
-                <i class="fa fa-chevron-left"></i> httpc 的链接池在multi microThread中失效引起高负载
+              <a href="/2019/06/16/kafka-consumer-practise/" rel="next" title="kafka_consumer_practise">
+                <i class="fa fa-chevron-left"></i> kafka_consumer_practise
               </a>
             
           </div>
@@ -458,8 +474,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2019/06/16/kafka-consumer-practise/" rel="prev" title="kafka_consumer_practise">
-                kafka_consumer_practise <i class="fa fa-chevron-right"></i>
+              <a href="/2019/07/13/bsm-kafka-comsumer-practise/" rel="prev" title="bsm_kafka_comsumer_practise">
+                bsm_kafka_comsumer_practise <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -616,7 +632,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#序"><span class="nav-text">序</span></a></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#先列下我认为的几种增加可见性方法"><span class="nav-text">先列下我认为的几种增加可见性方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#高可见性的用处"><span class="nav-text">高可见性的用处</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后台可见性的三个方面"><span class="nav-text">后台可见性的三个方面</span></a></li></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#后台灾备与异常处理"><span class="nav-text">后台灾备与异常处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#profilevisitor-备忘"><span class="nav-text">profilevisitor 备忘</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#脚印部分"><span class="nav-text">脚印部分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#热度部分"><span class="nav-text">热度部分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#热度初始值依赖赞数据"><span class="nav-text">热度初始值依赖赞数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一次性导入赞的历史数据，最终证明代价太大"><span class="nav-text">一次性导入赞的历史数据，最终证明代价太大</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#怪异的架构，导致了诡异的最终方案"><span class="nav-text">怪异的架构，导致了诡异的最终方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#监控的重要性"><span class="nav-text">监控的重要性</span></a></li></ol></li></ol></div>
             
 
           </div>
