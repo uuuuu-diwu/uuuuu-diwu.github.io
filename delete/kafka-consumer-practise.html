@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang>
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content=",,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="kafka consumer 实践 kafka的简介 提高消费速度 遇到的坑  你肯定难以想象有人要用kafka event flow 来实现游戏在线时间的计算，但是还真有人因为懒然后设计了这么一种方案，我真想骂他们这群老逼，代码不是你写，你当然不care啊。。。。">
+<meta name="keywords" content="backend,kafka">
+<meta property="og:type" content="website">
+<meta property="og:title" content="kafka_consumer_practise">
+<meta property="og:url" content="http://yoursite.com/delete/kafka-consumer-practise.html">
+<meta property="og:site_name" content="吳迪的雜談">
+<meta property="og:description" content="kafka consumer 实践 kafka的简介 提高消费速度 遇到的坑  你肯定难以想象有人要用kafka event flow 来实现游戏在线时间的计算，但是还真有人因为懒然后设计了这么一种方案，我真想骂他们这群老逼，代码不是你写，你当然不care啊。。。。">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://yoursite.com/image/un_consum.png">
+<meta property="og:image" content="http://yoursite.com/image/kafka_produce_cnt.png">
+<meta property="og:updated_time" content="2019-06-16T05:06:07.183Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="kafka_consumer_practise">
+<meta name="twitter:description" content="kafka consumer 实践 kafka的简介 提高消费速度 遇到的坑  你肯定难以想象有人要用kafka event flow 来实现游戏在线时间的计算，但是还真有人因为懒然后设计了这么一种方案，我真想骂他们这群老逼，代码不是你写，你当然不care啊。。。。">
+<meta name="twitter:image" content="http://yoursite.com/image/un_consum.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/delete/kafka-consumer-practise.html">
+
+
+
+
+
+  <title>kafka_consumer_practise | 吳迪的雜談</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">吳迪的雜談</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">自强不息 厚德载物</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+	<h1 class="post-title" itemprop="name headline">kafka_consumer_practise</h1>
+
+
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+        
+          <h1 id="kafka-consumer-实践"><a href="#kafka-consumer-实践" class="headerlink" title="kafka consumer 实践"></a>kafka consumer 实践</h1><ul>
+<li>kafka的简介</li>
+<li>提高消费速度</li>
+<li>遇到的坑</li>
+</ul>
+<p>你肯定难以想象有人要用kafka event flow 来实现游戏在线时间的计算，但是还真有人因为懒然后设计了这么一种方案，我真想骂他们这群老逼，代码不是你写，你当然不care啊。。。。</p>
+<a id="more"></a>
+
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>当前游戏进程(手机上)会在我们按 home 键切入切出的时候上报 onshow 和 onhide 事件，平台方会对所有平台上的app把这些事件写入 kafka, 业务方自行消费这些数据来进行做业务逻辑。平台方为了偷懒这么搞，当然他们可能考虑到不想耦合具体的业务逻辑，也懒得搞一套心跳机制。</p>
+<p>所以我要写一个consumer client，因为是client,所以司内没有现成的框架，这里的框架我希望他有监控进程死活，挂了自动拉起，方便部署的基本功能。其实这些写个脚步应该也可以，但是我实在不想重复造轮子，所以准备在我们的server框架中起工作线程来当consumer client，这样就可以复用系统监控，部署等组件了，非常方便。废话不多说，先说下kafka。</p>
+<h2 id="kafka的简介"><a href="#kafka的简介" class="headerlink" title="kafka的简介"></a>kafka的简介</h2><p>官方网站：<a href="https://kafka.apache.org/" target="_blank" rel="noopener">https://kafka.apache.org/</a>  </p>
+<h3 id="队列有什么用"><a href="#队列有什么用" class="headerlink" title="队列有什么用"></a>队列有什么用</h3><p>这东西其实就是一个队列管子，生产者往里面塞东西，消费者从里面拉取东西。有人会问，生产者直接把东西递给消费者不就OK了吗，其实这里就需要考虑到几个问题。</p>
+<ol>
+<li>如果同时有很多个业务都需要接收同一份数据，那我们的系统难道一个个的递吗？如果有其中一个失败怎么处理呢？这里用到队列就可以解决这个问题，每个需要数据的client都来消费这个队列不就可以了吗。</li>
+<li>如果现在有一个请求需要很久的时间来处理，但是请求者又不能等很久没有回复，那我们的服务难道就等着处理完了然后告诉请求者结果吗？其实这里就可以异步处理，请求来了直接回包说收到请求了，然后把信息丢到队列里面，等下有空了再来处理，然后处理完了再通知请求者，这样是可以提高服务的峰值吞吐量的。</li>
+<li>如果接收数据方在收到数据后开始处理这份数据，但是他处理失败了，此时他想重新处理，他肯定没法要求数据发送方再给他发一次，他自己基本也不会把这些数据存下来，那这样这次处理计算彻底失败了，而且没机会重来。但是队列可以解决这个问题，我们只需要重复消费就OK。</li>
+</ol>
+<h3 id="kafka-这种队列"><a href="#kafka-这种队列" class="headerlink" title="kafka 这种队列"></a>kafka 这种队列</h3><p>先介绍几个keyword: [ producer , consumer , broker , topic , consumer group , partition]</p>
+<ul>
+<li>producer: 就是那个往kafka里面塞数据的</li>
+<li>consumer : 就是那个消费kafka里面数据的</li>
+<li>broker: 发布者，其实就是一个kafka节点，多个broker可以组成一个kafka集群</li>
+<li>topic: 一类消息，生产者和消费者商量好topic，然后都按这个topic来写入和读取</li>
+<li>partition : 分区，这实际上是一个物理上的概念，kafka为了保证安全，将一个topic的数据存放在多个partition中，每个partition是一个队列，这样某个partition挂了，也只是部分挂了，当然这也做也可以提高消费并发度(后文再讲)</li>
+<li>consumer group 消费组，消费者为了提高消费速度，往往需要多个消费实例一起消费，需要注意的是一个parition同一时间只能被一个consumer 实例消费</li>
+</ul>
+<h2 id="此次需求"><a href="#此次需求" class="headerlink" title="此次需求"></a>此次需求</h2><p>我一开始想的很简单，我有两台机器，没台机器上起多个worker进程，每个worker进程中起多个consumer实例(线程)，一个consumer线程内部是同步的，大致遵循以下算法</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">BusiProcess</span><span class="params">(<span class="keyword">const</span> Message* msg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    KafkaMsgObj msgObj;</span><br><span class="line">    msgObj.Decode(msg);</span><br><span class="line">    <span class="comment">//do something</span></span><br><span class="line">    write_db_cache_svr(msgObj);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">void</span> Thread::Run()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="literal">true</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        Message* msg = KafkaConsumer.consume();</span><br><span class="line">        BusiProcess(msg);</span><br><span class="line">        KafkaConsumer.commitSync();</span><br><span class="line">        <span class="keyword">delete</span> msg;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实以上做法真的很简单，只是问题很快就出现了。</p>
+<p>我在需求开始前就问过了生产方 “多大的量啊，峰值1s多少次写入”，结果那边说目前没有这种数据，因为你接收的只是游戏类型app的数据，我这里只有所有app数据的写入量，你自己问产品看能有多少量吧。我他妈真是日了狗了啊，这做你ma呢。然后我心想算了，无非加消费者，怕个毛。我一开始只放了大概2个消费实例，我看也没有消息堆积，然后自测也OK了，然后生产那边这时说一句“那我放量了啊，我把版本发到所有的机器上”。。我顿时呆了“原来你这个坑货一直都只是发布了一部分机器啊，那我消费的都是啥？不全的数据？阉割后的量级？我这没有消息堆积完全就是假象啊”。心想，行吧，你放量，我观察下，扛不住就加线程呗。结果那个老逼一波操作，我这边直接炸了，消息堆积数暴涨！！！！赶紧加线程，加到了20个线程，未消费消息数终于开始下降了，心想完美，这个需求做完了。</p>
+<p>结果到了第二天，我手机就被kafka告警信息爆了，我一看监控就惊呆了。生产峰值流量涨了6倍，我立刻找到了平台后台开发问他们在搞什么鬼，然后被告知“有游戏闪屏放量，涨个6倍不要太正常”。</p>
+<p><img src="/image/un_consum.png" alt></p>
+<p><img src="/image/kafka_produce_cnt.png" alt></p>
+<p>6倍。。。。。。6倍。。。。。。尼玛，我把消费线程加到顶50个也扛不住这种量啊。然后产品又说之后做活动应该差不多15倍的量吧。。。。我心想这群家伙合伙搞我，但是这要是出事了肯定我背锅，我得赶紧想办法解决了。</p>
+<h2 id="提高消费速度"><a href="#提高消费速度" class="headerlink" title="提高消费速度"></a>提高消费速度</h2><ul>
+<li>加partition，因为消费者数量受限于partition数量，所以我最直接的想法就是加 partition, 无非多花点钱买高配置版（反正不是我的钱），我才不愿意改代码，改了又得重新测试。</li>
+</ul>
+<p>事情总是不如人意，腾讯云的kafka单topic最多100个分区，任你什么配置。意思就是说我如果不改代码，我的系统的峰值消费能力最多是现在的两倍。。。。这肯定不行。</p>
+<ul>
+<li><p>改代码，提供并发度</p>
+<p>这里其实涉及到业务逻辑，并不是很方便并行处理，比如我一次 pull 5 条消息，然后一次处理5条数据，但是其实这5条数据之前可能会有关联，我不能直接就这样批处理了。我处理的耗时瓶颈在 write_db_cache_svr(msgObj); 这个操作需要写存储，单条kv写入耗时 3ms 左右，我pull一条数据然后write_db_cache_svr 基本耗时也是3ms，我pull 5条数据然后 5次 write_db_cache_svr  ，耗时也是15ms啊，并没有本质的改变。我需要一次写入5条数据，但是其实这里可能会有一个问题，如果这5条消息里面有两条是针对同一个kv的，那么我业务处理完后，写入这5条数据，就肯定有写冲突。所以这里还需要改代码逻辑，先识别多条msg，把同一个kv的数据一起处理而不是分开，然后再一同 write_db_cache_svr。</p>
+<p>后来观察到，一次pull 20条数据，最终处理完write_db_cache_svr  的条数大部分在 10 — 15条之间，write_db_cache_svr 延迟变为 10ms左右，这样我的吞吐量提示了将近 6 倍。我再把partition 提高到100个，那我的整体消费能力就提升了 12倍。而预计的峰值消费流量是现在的15倍，但现在（平时）的峰值消费流量，我只需要不到一半的消费能力就能完全处理。这下意味着即使是当前15倍的生产流量，这里也不会有消费堆积。</p>
+</li>
+</ul>
+<h2 id="遇到的坑"><a href="#遇到的坑" class="headerlink" title="遇到的坑"></a>遇到的坑</h2><ul>
+<li><p>同一个用户的数据被生产者放到多个partition里面去了</p>
+<p>正常操作难道不是对user_id 进行 hash吗，然后同一个用户的数据只会出现在同一个partition中吗？但是平台后台偏不？这就有趣了，我那边很多consumer实例同时消费到了同一个user的数据，然后写存储，大概率发生 写冲突 ，然后写失败。当时看监控，写存储的成功率只有90% ,有时候甚至掉到75% 。让他们改，他们就是不改。。。。那好吧，我自己做重试处理行了吧，写冲突后随机退避再写入一次。在 70k/min的消费速度下，这边的写冲突失败被控制在了50 / min 。但是我还是觉得这就是扯淡啊，凭啥他们不改啊，kafka有提供这个功能啊，拉上老大，我们产品，直接@他们老大，怼！事后，当他们被逼着改了后，我这边的成功率就恢复到100 %了，非常棒。</p>
+</li>
+</ul>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/image/siteAvatar.jpg" alt="pinewu">
+            
+              <p class="site-author-name" itemprop="name">pinewu</p>
+              <p class="site-description motion-element" itemprop="description">diwu@alumni.hust.edu.cn</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/uuuuu-diwu" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:diwu@alumni.hust.edu.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://www.google.com/" target="_blank" title="Google">
+                      
+                        <i class="fa fa-fw fa-google"></i>Google</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#kafka-consumer-实践"><span class="nav-text">kafka consumer 实践</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#kafka的简介"><span class="nav-text">kafka的简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#队列有什么用"><span class="nav-text">队列有什么用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kafka-这种队列"><span class="nav-text">kafka 这种队列</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#此次需求"><span class="nav-text">此次需求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#提高消费速度"><span class="nav-text">提高消费速度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#遇到的坑"><span class="nav-text">遇到的坑</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">pinewu</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
