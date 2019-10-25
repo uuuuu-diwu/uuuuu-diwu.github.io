@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="backend,tracing,logging,">
+  <meta name="keywords" content="backend,linux,">
 
 
 
@@ -79,21 +79,26 @@
 
 
 
-<meta name="description" content="序来腾讯做后台也将近一年了，发过许多版本，查过很多问题，有半夜被成功率掉0，服务高负载 搞过，踩过一些坑。如果让我总结后台开发比较重要的一些点，我觉得肯定有系统的可见性Visibility，他真的非常重要。应该说任何 7 * 24 运行的系统都是这样的，无监控不7 * 24">
-<meta name="keywords" content="backend,tracing,logging">
+<meta name="description" content="System Activity Reporter note​    “sar是System Activity Reporter（系统活动情况报告）的缩写。sar工具将对系统当前的状态进行取样，然后通过计算数据和比例来表达系统的当前运行状态。它的特点是可以连续对系统取样，获得大量的取样数据；取样数据和分析的结果都可以存入文件，所需的负载很小。sar是目前Linux上最为全面的系统性能分析工具之一，可">
+<meta name="keywords" content="backend,linux">
 <meta property="og:type" content="article">
-<meta property="og:title" content="后台系统的可见性">
-<meta property="og:url" content="http://yoursite.com/2019/06/15/back-Visibility/index.html">
+<meta property="og:title" content="System Activity Reporter note">
+<meta property="og:url" content="http://yoursite.com/2019/10/25/sarDoc/index.html">
 <meta property="og:site_name" content="吴迪的笔记">
-<meta property="og:description" content="序来腾讯做后台也将近一年了，发过许多版本，查过很多问题，有半夜被成功率掉0，服务高负载 搞过，踩过一些坑。如果让我总结后台开发比较重要的一些点，我觉得肯定有系统的可见性Visibility，他真的非常重要。应该说任何 7 * 24 运行的系统都是这样的，无监控不7 * 24">
+<meta property="og:description" content="System Activity Reporter note​    “sar是System Activity Reporter（系统活动情况报告）的缩写。sar工具将对系统当前的状态进行取样，然后通过计算数据和比例来表达系统的当前运行状态。它的特点是可以连续对系统取样，获得大量的取样数据；取样数据和分析的结果都可以存入文件，所需的负载很小。sar是目前Linux上最为全面的系统性能分析工具之一，可">
 <meta property="og:locale" content="default">
-<meta property="og:image" content="http://yoursite.com/image/backend_vis.png">
-<meta property="og:image" content="http://yoursite.com/image/backend_vis2.png">
-<meta property="og:updated_time" content="2019-06-15T07:11:28.120Z">
+<meta property="og:image" content="http://yoursite.com/image/sar-u1.png">
+<meta property="og:image" content="http://yoursite.com/image/sar-v1.png">
+<meta property="og:image" content="http://yoursite.com/image/sar-r1.png">
+<meta property="og:image" content="http://yoursite.com/image/sarB1.png">
+<meta property="og:image" content="http://yoursite.com/image/sar-b1.png">
+<meta property="og:image" content="http://yoursite.com/image/sar-q1.png">
+<meta property="og:image" content="http://yoursite.com/image/sar-nDev.png">
+<meta property="og:updated_time" content="2019-10-25T02:30:31.461Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="后台系统的可见性">
-<meta name="twitter:description" content="序来腾讯做后台也将近一年了，发过许多版本，查过很多问题，有半夜被成功率掉0，服务高负载 搞过，踩过一些坑。如果让我总结后台开发比较重要的一些点，我觉得肯定有系统的可见性Visibility，他真的非常重要。应该说任何 7 * 24 运行的系统都是这样的，无监控不7 * 24">
-<meta name="twitter:image" content="http://yoursite.com/image/backend_vis.png">
+<meta name="twitter:title" content="System Activity Reporter note">
+<meta name="twitter:description" content="System Activity Reporter note​    “sar是System Activity Reporter（系统活动情况报告）的缩写。sar工具将对系统当前的状态进行取样，然后通过计算数据和比例来表达系统的当前运行状态。它的特点是可以连续对系统取样，获得大量的取样数据；取样数据和分析的结果都可以存入文件，所需的负载很小。sar是目前Linux上最为全面的系统性能分析工具之一，可">
+<meta name="twitter:image" content="http://yoursite.com/image/sar-u1.png">
 
 
 
@@ -123,13 +128,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/06/15/back-Visibility/">
+  <link rel="canonical" href="http://yoursite.com/2019/10/25/sarDoc/">
 
 
 
 
 
-  <title>后台系统的可见性 | 吴迪的笔记</title>
+  <title>System Activity Reporter note | 吴迪的笔记</title>
   
 
 
@@ -256,7 +261,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/15/back-Visibility/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/25/sarDoc/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="pinewu">
@@ -273,7 +278,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">后台系统的可见性</h1>
+          <h1 class="post-title" itemprop="name headline">System Activity Reporter note</h1>
         
 
         <div class="post-meta">
@@ -285,8 +290,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-15T14:06:51+08:00">
-                2019-06-15
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-10-25T10:16:47+08:00">
+                2019-10-25
               </time>
             
 
@@ -345,75 +350,82 @@
       
 
       
-        <h3 id="序"><a href="#序" class="headerlink" title="序"></a>序</h3><p>来腾讯做后台也将近一年了，发过许多版本，查过很多问题，有半夜被成功率掉0，服务高负载 搞过，踩过一些坑。如果让我总结后台开发比较重要的一些点，我觉得肯定有系统的可见性Visibility，他真的非常重要。应该说任何 7 * 24 运行的系统都是这样的，无监控不7 * 24</p>
+        <h1 id="System-Activity-Reporter-note"><a href="#System-Activity-Reporter-note" class="headerlink" title="System Activity Reporter note"></a>System Activity Reporter note</h1><p>​    “sar是System Activity Reporter（系统活动情况报告）的缩写。sar工具将对系统当前的状态进行取样，然后通过计算数据和比例来表达系统的当前运行状态。它的特点是可以连续对系统取样，获得大量的取样数据；取样数据和分析的结果都可以存入文件，所需的负载很小。sar是目前Linux上最为全面的系统性能分析工具之一，可以从14个大方面对系统的活动进行报告，包括文件的读写情况、系统调用的使用情况、串口、CPU效率、内存使用状况、进程活动及IPC有关的活动等，使用也是较为复杂。”[1]</p>
 <a id="more"></a>
-<p>本文参考tx 同事 unlikezhang 的 《后台系统可见性衡量》, Peter Bourgon 《Metrics, tracing, and logging》 </p>
-<h2 id="先列下我认为的几种增加可见性方法"><a href="#先列下我认为的几种增加可见性方法" class="headerlink" title="先列下我认为的几种增加可见性方法"></a>先列下我认为的几种增加可见性方法</h2><p><strong>log</strong></p>
-<table>
-<thead>
-<tr>
-<th>methond</th>
-<th>desc</th>
-<th>优点</th>
-<th>缺点</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>printf类</td>
-<td>学生时代写一次性程序常用</td>
-<td>非常简单</td>
-<td>输出信息无法长久保存，刷屏。几乎不能用于生产。</td>
-</tr>
-<tr>
-<td>local log类</td>
-<td>把 log 打在本地</td>
-<td>简单，有保存</td>
-<td>线上环境几乎只有error log，log分散在集群中每一台机器</td>
-</tr>
-<tr>
-<td>专门的log服务</td>
-<td>把log输出到专门的log-agent后发送到存储集群</td>
-<td>可全量log，支持染色后全量log</td>
-<td>需要专门的服务来做这件事(根本不是缺点)</td>
-</tr>
-</tbody></table>
-<p><strong>statistic</strong></p>
-<table>
-<thead>
-<tr>
-<th>methond</th>
-<th>desc</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>属性计数</td>
-<td>针对单个属性的数值记录，如cpu负载，磁盘使用量，当前进程数，访问量，入流量等。是kv级别的监控，可以在程序中添加关注的属性的监控，自行进行加上报操作</td>
-</tr>
-<tr>
-<td>调用统计</td>
-<td>统计每次外部调用的callerId,calleeId, ip, delay , retcode , isSuccess。并以此为基础分析服务运行情况</td>
-</tr>
-</tbody></table>
-<p>以上列出了常见的 5 中观察系统运行情况的方式 , log类比较细，基本在代码层面了。statistic层比较大，多在系统层面，所以常见的告警都是利用statistic 层面的数据进行规则匹配的</p>
-<h2 id="高可见性的用处"><a href="#高可见性的用处" class="headerlink" title="高可见性的用处"></a>高可见性的用处</h2><p>一般的查问题的方法都是<br>外网投诉 / 告警 —-&gt; 开发者 —-&gt; 查看相关监控数据，观察各项指标 —–&gt; 去log系统捞log —–&gt; 上机器grep log或者tail log —-&gt; 分析问题 —–&gt; 定位到问题 —- 解决问题</p>
-<p>问题的解决其实和破案的过程非常像，定位问题是最重要的，而定位问题就需要我们的系统足够可见，不然定位问题无从谈起。</p>
-<h2 id="后台可见性的三个方面"><a href="#后台可见性的三个方面" class="headerlink" title="后台可见性的三个方面"></a>后台可见性的三个方面</h2><p>Peter Bourgon 在他的文章中提出了系统可见性的三个词 [Metrics, tracing, logging]. </p>
-<p><img src="/image/backend_vis.png" alt></p>
-<p>以下是原文</p>
-<p>metrics :</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">I think that the defining characteristic of metrics is that they are </span><br><span class="line">aggregatable: they are the atoms that compose into a single logical gauge, </span><br><span class="line">counter, or histogram over a span of time. As examples: the current depth of a </span><br><span class="line">queue could be modeled as a gauge, whose updates aggregate with last-writer-win semantics; </span><br><span class="line">the number of incoming HTTP requests could be modeled as a counter, whose updates aggregate </span><br><span class="line">by simple addition; and the observed duration of a request could be modeled into a histogram, </span><br><span class="line">whose updates aggregate into time-buckets and yield statistical summaries.</span><br></pre></td></tr></table></figure>
 
-<p>logging :</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">I think that the defining characteristic of logging is that it deals with discrete events. </span><br><span class="line">As examples: application debug or error messages emitted via a rotated file descriptor through </span><br><span class="line">syslog to Elasticsearch (or OK Log, nudge nudge); audit-trail events pushed through Kafka to a </span><br><span class="line">data lake like BigTable; or request-specific metadata pulled from a service call and sent to </span><br><span class="line">an error tracking service like NewRelic.</span><br></pre></td></tr></table></figure>
-
-<p>tracing :</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">I think that the single defining characteristic of tracing, then, is that it deals with information </span><br><span class="line">that is request-scoped. Any bit of data or metadata that can be bound to lifecycle of a single </span><br><span class="line">transactional object in the system. As examples: the duration of an outbound RPC to a remote </span><br><span class="line">service; the text of an actual SQL query sent to a database; or the correlation ID of an inbound HTTP request.</span><br></pre></td></tr></table></figure>
-
-<p><img src="/image/backend_vis2.png" alt></p>
-<p>其实 Peter Bourgon 所说的 metrics 应该和我说的系统级别的 statistic 是差不多的，这个级别的可见性，应该是记录一些 counter , 或者一些统计量，监控系统最好能以实时统计图的方式给出他们的表现，这个级别的是一个 statistical summaries .</p>
-<p>而logging主要就是程序自行输出的运行日志，按我的理解 tracing 是针对请求级别，包括上游链路，下游链路上所有log针对此次处理的Log，当然这种最好就是全量Log,一般由专门的log server完成这些服务，一般是只针对染色后的用户。</p>
-<p>##总结</p>
-<p>详细而好用又不失性能的监控其实是很难的，当然以后设计时，应该往metrics , logging , tracing 三个方面去想, 每个方面都需要做设计，不可顾此失彼，只有这样建立的监控才是立体的，有效的</p>
+<h2 id="cpu-资源监控"><a href="#cpu-资源监控" class="headerlink" title="cpu 资源监控"></a>cpu 资源监控</h2><p>sar -u 1</p>
+<p>采集cpu使用数据，1s一次</p>
+<p><img src="/image/sar-u1.png" alt></p>
+<p>输出项目说明:</p>
+<p>CPU：all 表示统计信息为所有 CPU 的平均值。</p>
+<p>%user：显示在用户级别(application)运行使用 CPU 总时间的百分比。</p>
+<p>%nice：显示在用户级别，用于nice操作，所占用 CPU 总时间的百分比。</p>
+<p>%system：在核心级别(kernel)运行所使用 CPU 总时间的百分比。</p>
+<p>%iowait：显示用于等待I/O操作占用 CPU 总时间的百分比。</p>
+<p>%steal：管理程序(hypervisor)为另一个虚拟进程提供服务而等待虚拟 CPU 的百分比。</p>
+<p>%idle：显示 CPU 空闲时间占用 CPU 总时间的百分比。</p>
+<ol>
+<li>若 %iowait 的值过高，表示硬盘存在I/O瓶颈</li>
+<li>若 %idle 的值高但系统响应慢时，有可能是 CPU 等待分配内存，此时应加大内存容量</li>
+<li>若 %idle 的值持续低于1，则系统的 CPU 处理能力相对较低，表明系统中最需要解决的资源是CPU 。</li>
+</ol>
+<h2 id="inode-文件和其他内核表监控"><a href="#inode-文件和其他内核表监控" class="headerlink" title="inode, 文件和其他内核表监控"></a>inode, 文件和其他内核表监控</h2><p>sar -v 1</p>
+<p><img src="/image/sar-v1.png" alt></p>
+<p>输出项目说明：</p>
+<p>dentunusd：目录高速缓存中未被使用的条目数量</p>
+<p>file-nr：文件句柄（file handle）的使用数量</p>
+<p>inode-nr：索引节点句柄（inode handle）的使用数量</p>
+<p>pty-nr：使用的pty数量</p>
+<h2 id="内存以及swap监控"><a href="#内存以及swap监控" class="headerlink" title="内存以及swap监控"></a>内存以及swap监控</h2><p>sar -r 1</p>
+<p><img src="/image/sar-r1.png" alt></p>
+<p>输出项说明：</p>
+<p>kbmemfree：这个值和free命令中的free值基本一致,所以它不包括buffer和cache的空间.</p>
+<p>kbmemused：这个值和free命令中的used值基本一致,所以它包括buffer和cache的空间.</p>
+<p>%memused：这个值是kbmemused和内存总量(不包括swap)的一个百分比.</p>
+<p>kbbuffers和kbcached：这两个值就是free命令中的buffer和cache.</p>
+<p>kbcommit：保证当前系统所需要的内存,即为了确保不溢出而需要的内存(RAM+swap).</p>
+<p>%commit：这个值是kbcommit与内存总量(包括swap)的一个百分比.</p>
+<h2 id="page-info-监控"><a href="#page-info-监控" class="headerlink" title="page info 监控"></a>page info 监控</h2><p>sar -B 1</p>
+<p><img src="/image/sarB1.png" alt></p>
+<p>输出项说明：</p>
+<p>pgpgin/s：表示每秒从磁盘或SWAP置换到内存的字节数(KB)</p>
+<p>pgpgout/s：表示每秒从内存置换到磁盘或SWAP的字节数(KB)</p>
+<p>fault/s：每秒钟系统产生的缺页数,即主缺页与次缺页之和(major + minor)</p>
+<p>majflt/s：每秒钟产生的主缺页数.</p>
+<p>pgfree/s：每秒被放入空闲队列中的页个数</p>
+<p>pgscank/s：每秒被kswapd扫描的页个数</p>
+<p>pgscand/s：每秒直接被扫描的页个数</p>
+<p>pgsteal/s：每秒钟从cache中被清除来满足内存需要的页个数</p>
+<p>%vmeff：每秒清除的页(pgsteal)占总扫描页(pgscank+pgscand)的百分比</p>
+<h2 id="IO-监控"><a href="#IO-监控" class="headerlink" title="IO 监控"></a>IO 监控</h2><p>sar -b 1</p>
+<p><img src="/image/sar-b1.png" alt></p>
+<p>输出项说明：</p>
+<p>tps：每秒钟物理设备的 I/O 传输总量</p>
+<p>rtps：每秒钟从物理设备读入的数据总量</p>
+<p>wtps：每秒钟向物理设备写入的数据总量</p>
+<p>bread/s：每秒钟从物理设备读入的数据量，单位为 块/s</p>
+<p>bwrtn/s：每秒钟向物理设备写入的数据量，单位为 块/s</p>
+<h2 id="负载监控"><a href="#负载监控" class="headerlink" title="负载监控"></a>负载监控</h2><p><img src="/image/sar-q1.png" alt></p>
+<p>输出项说明：</p>
+<p>runq-sz：运行队列的长度（等待运行的进程数）</p>
+<p>plist-sz：进程列表中进程（processes）和线程（threads）的数量</p>
+<p>ldavg-1：最后1分钟的系统平均负载（System load average）</p>
+<p>ldavg-5：过去5分钟的系统平均负载</p>
+<p>ldavg-15：过去15分钟的系统平均负载</p>
+<h2 id="网络流量监控"><a href="#网络流量监控" class="headerlink" title="网络流量监控"></a>网络流量监控</h2><p>sar -n keyword 1</p>
+<p>Possible keywords are DEV, EDEV, NFS, NFSD, SOCK, IP, EIP, ICMP, EICMP, TCP, ETCP, UDP, SOCK6, IP6, EIP6, ICMP6, EICMP6 and UDP6</p>
+<h3 id="DEV"><a href="#DEV" class="headerlink" title="DEV"></a>DEV</h3><p><img src="/image/sar-nDev.png" alt></p>
+<p>FACE：就是网络设备的名称；</p>
+<p>rxpck/s：每秒钟接收到的包数目</p>
+<p>txpck/s：每秒钟发送出去的包数目</p>
+<p>rxbyt/s：每秒钟接收到的字节数</p>
+<p>txbyt/s：每秒钟发送出去的字节数</p>
+<p>rxcmp/s：每秒钟接收到的压缩包数目</p>
+<p>txcmp/s：每秒钟发送出去的压缩包数目</p>
+<p>txmcst/s：每秒钟接收到的多播包的包数目</p>
+<p>待续。。。详细补充各项参数的意义</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>[1]  <a href="https://linuxtools-rst.readthedocs.io/zh_CN/latest/tool/sar.html" target="_blank" rel="noopener">sar 找出系统瓶颈的利器 </a></p>
+<p>[2] <a href="https://linux.die.net/man/1/sar" target="_blank" rel="noopener">linux man page</a></p>
 
       
     </div>
@@ -433,9 +445,7 @@
           
             <a href="/tags/backend/" rel="tag"># backend</a>
           
-            <a href="/tags/tracing/" rel="tag"># tracing</a>
-          
-            <a href="/tags/logging/" rel="tag"># logging</a>
+            <a href="/tags/linux/" rel="tag"># linux</a>
           
         </div>
       
@@ -448,8 +458,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/06/15/high-cpu-load/" rel="next" title="httpc 的链接池在multi microThread中失效引起高负载">
-                <i class="fa fa-chevron-left"></i> httpc 的链接池在multi microThread中失效引起高负载
+              <a href="/2019/07/13/bsm-kafka-comsumer-practise/" rel="next" title="bsm_kafka_comsumer_practise">
+                <i class="fa fa-chevron-left"></i> bsm_kafka_comsumer_practise
               </a>
             
           </div>
@@ -457,10 +467,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2019/07/13/bsm-kafka-comsumer-practise/" rel="prev" title="bsm_kafka_comsumer_practise">
-                bsm_kafka_comsumer_practise <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -616,7 +622,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#序"><span class="nav-text">序</span></a></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#先列下我认为的几种增加可见性方法"><span class="nav-text">先列下我认为的几种增加可见性方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#高可见性的用处"><span class="nav-text">高可见性的用处</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后台可见性的三个方面"><span class="nav-text">后台可见性的三个方面</span></a></li></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#System-Activity-Reporter-note"><span class="nav-text">System Activity Reporter note</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#cpu-资源监控"><span class="nav-text">cpu 资源监控</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#inode-文件和其他内核表监控"><span class="nav-text">inode, 文件和其他内核表监控</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内存以及swap监控"><span class="nav-text">内存以及swap监控</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#page-info-监控"><span class="nav-text">page info 监控</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IO-监控"><span class="nav-text">IO 监控</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#负载监控"><span class="nav-text">负载监控</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#网络流量监控"><span class="nav-text">网络流量监控</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DEV"><span class="nav-text">DEV</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-text">参考</span></a></li></ol></li></ol></div>
             
 
           </div>
