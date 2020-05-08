@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="backend,kafka,">
+  <meta name="keywords" content="tech_blog,">
 
 
 
@@ -79,20 +79,18 @@
 
 
 
-<meta name="description" content="kafka consumer的实践下午无聊试了下用go写一个kafka consumer，发现效果非常好，而且方便测量性能，赶紧记录下数据">
-<meta name="keywords" content="backend,kafka">
+<meta name="description" content="spp的源码，已经由tencent开源 https://github.com/Tencent/MSEC/tree/master/spp_rpc/src/sync_frame/micro_thread">
+<meta name="keywords" content="tech_blog">
 <meta property="og:type" content="article">
-<meta property="og:title" content="bsm_kafka_comsumer_practise">
-<meta property="og:url" content="http://yoursite.com/2019/07/13/bsm-kafka-comsumer-practise/index.html">
+<meta property="og:title" content="spp微线程源码解析1--context switch">
+<meta property="og:url" content="http://yoursite.com/2020/05/08/spp-coroutine/index.html">
 <meta property="og:site_name" content="吴迪的笔记">
-<meta property="og:description" content="kafka consumer的实践下午无聊试了下用go写一个kafka consumer，发现效果非常好，而且方便测量性能，赶紧记录下数据">
+<meta property="og:description" content="spp的源码，已经由tencent开源 https://github.com/Tencent/MSEC/tree/master/spp_rpc/src/sync_frame/micro_thread">
 <meta property="og:locale" content="default">
-<meta property="og:image" content="http://yoursite.com/image/kafka_arc.png">
-<meta property="og:updated_time" content="2019-07-13T10:30:10.750Z">
+<meta property="og:updated_time" content="2020-05-08T07:38:28.157Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="bsm_kafka_comsumer_practise">
-<meta name="twitter:description" content="kafka consumer的实践下午无聊试了下用go写一个kafka consumer，发现效果非常好，而且方便测量性能，赶紧记录下数据">
-<meta name="twitter:image" content="http://yoursite.com/image/kafka_arc.png">
+<meta name="twitter:title" content="spp微线程源码解析1--context switch">
+<meta name="twitter:description" content="spp的源码，已经由tencent开源 https://github.com/Tencent/MSEC/tree/master/spp_rpc/src/sync_frame/micro_thread">
 
 
 
@@ -122,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/07/13/bsm-kafka-comsumer-practise/">
+  <link rel="canonical" href="http://yoursite.com/2020/05/08/spp-coroutine/">
 
 
 
 
 
-  <title>bsm_kafka_comsumer_practise | 吴迪的笔记</title>
+  <title>spp微线程源码解析1--context switch | 吴迪的笔记</title>
   
 
 
@@ -255,7 +253,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/13/bsm-kafka-comsumer-practise/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/08/spp-coroutine/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="pinewu">
@@ -272,7 +270,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">bsm_kafka_comsumer_practise</h1>
+          <h1 class="post-title" itemprop="name headline">spp微线程源码解析1--context switch</h1>
         
 
         <div class="post-meta">
@@ -284,8 +282,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-07-13T17:28:22+08:00">
-                2019-07-13
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-05-08T15:29:56+08:00">
+                2020-05-08
               </time>
             
 
@@ -294,28 +292,6 @@
             
           </span>
 
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/tech-blog/" itemprop="url" rel="index">
-                    <span itemprop="name">tech_blog</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
           
 
           
@@ -344,70 +320,38 @@
       
 
       
-        <h2 id="kafka-consumer的实践"><a href="#kafka-consumer的实践" class="headerlink" title="kafka consumer的实践"></a>kafka consumer的实践</h2><p>下午无聊试了下用go写一个kafka consumer，发现效果非常好，而且方便测量性能，赶紧记录下数据</p>
-<a id="more"></a>
+        <p>spp的源码，已经由tencent开源</p>
+<p><a href="https://github.com/Tencent/MSEC/tree/master/spp_rpc/src/sync_frame/micro_thread" target="_blank" rel="noopener">https://github.com/Tencent/MSEC/tree/master/spp_rpc/src/sync_frame/micro_thread</a></p>
+<a id="more"></a> 
 
-<p>kafkaServer 参数</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">网络类型:内网</span><br><span class="line">峰值带宽:180 MB/s</span><br><span class="line">磁盘容量:4000 GB</span><br><span class="line">测试topic:</span><br><span class="line">	partition: 100</span><br><span class="line">    copy:2</span><br></pre></td></tr></table></figure>
+<p>[TOC]</p>
+<h3 id="预备知识"><a href="#预备知识" class="headerlink" title="预备知识"></a>预备知识</h3><p>请先了解 x86_64  c 函数调用约定。但是这里还是简单提下</p>
+<p>例如调用 Foo(uint64_t a,uint64_t b……); 这里假设参数大小都不大于8 bytes，因为大于8 bytes的参数应该用指针传递</p>
+<ol>
+<li>64 位下，函数从左到右的参数分布存入 rdi rsi rdx</li>
+<li>参数存储到寄存器后 call  Foo ，我们需要知道call 指令发生了什么，call指令会把 下一条指令的地址 push到 stack上，并且rsp 自动减 8，然后Foo的地址会被赋值给pc寄存器，即接下来cpu将从Foo处开始执行</li>
+<li>函数的返回值保存在rax里面</li>
+</ol>
+<h3 id="函数签名"><a href="#函数签名" class="headerlink" title="函数签名"></a>函数签名</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span>  <span class="function"><span class="keyword">int</span> <span class="title">save_context</span><span class="params">(jmp_buf jbf)</span></span>;</span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span>  <span class="function"><span class="keyword">void</span> <span class="title">restore_context</span><span class="params">(jmp_buf jbf, <span class="keyword">int</span> ret)</span></span>;</span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span>  <span class="function"><span class="keyword">void</span> <span class="title">replace_esp</span><span class="params">(jmp_buf jbf, <span class="keyword">void</span>* esp)</span></span>;</span><br></pre></td></tr></table></figure>
 
-<p>空载时的消费能力</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">consumer数量：1</span><br><span class="line">worker 数量: 1</span><br><span class="line">consumer 与 worker 是否一个执行单元 : 否</span><br><span class="line">consumer 和 worker协作方式 : go chanel 链接</span><br><span class="line">消息处理方式 : 不处理</span><br><span class="line">峰值消费能力 : 200000/s</span><br><span class="line">消耗机器负载: 13%</span><br><span class="line">机器性能参数:</span><br><span class="line">Architecture:          x86_64</span><br><span class="line">CPU op-mode(s):        32-bit, 64-bit</span><br><span class="line">Byte Order:            Little Endian</span><br><span class="line">CPU(s):                8</span><br><span class="line">On-line CPU(s) list:   0-7</span><br><span class="line">Thread(s) per core:    1</span><br><span class="line">Core(s) per socket:    8</span><br><span class="line">Socket(s):             1</span><br><span class="line">NUMA node(s):          1</span><br><span class="line">Vendor ID:             GenuineIntel</span><br><span class="line">CPU family:            6</span><br><span class="line">Model:                 94</span><br><span class="line">Model name:            Intel(R) Xeon(R) Gold 61xx CPU</span><br><span class="line">Stepping:              3</span><br><span class="line">CPU MHz:               2494.140</span><br><span class="line">BogoMIPS:              4988.28</span><br><span class="line">Hypervisor vendor:     KVM</span><br><span class="line">Virtualization type:   full</span><br><span class="line">L1d cache:             32K</span><br><span class="line">L1i cache:             32K</span><br><span class="line">L2 cache:              4096K</span><br><span class="line">NUMA node0 CPU(s):     0-7</span><br></pre></td></tr></table></figure>
+<h3 id="save-context"><a href="#save-context" class="headerlink" title="save_context"></a>save_context</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">save_context:</span><br><span class="line">	pop  %rsi			</span><br><span class="line">	xorl %eax,%eax	</span><br><span class="line">	movq %rbx,(%rdi)</span><br><span class="line">	movq %rsp,8(%rdi)</span><br><span class="line">	push %rsi	</span><br><span class="line">	movq %rbp,16(%rdi)</span><br><span class="line">	movq %r12,24(%rdi)</span><br><span class="line">	movq %r13,32(%rdi)</span><br><span class="line">	movq %r14,40(%rdi)</span><br><span class="line">	movq %r15,48(%rdi)</span><br><span class="line">	movq %rsi,56(%rdi)	</span><br><span class="line">	ret</span><br></pre></td></tr></table></figure>
 
-<p>通过以上数据可以得出，client拉取数据的速度是非常快的，这基本不会成为消费能力的瓶颈，其平均delay不到 10 us。而我们的业务处理，基本是ms级别了，远远落后于pull 的速度，所以把 pull 和 process 放在一条执行路径上是非常愚蠢的，将极大的阻塞消费速度。</p>
-<p>我记得之前第一次用kafka的时候，还是用c++写的client，当时的就是把 pull 和 process 放在一个线程中，其消费能力低得惨不忍睹，后来开始一次pull 20条消息后处理，但是还是没有把 process 和 pull 分离，但是消费速度还是有很大的提升。这里的瓶颈其实就是process阻塞了 pull，而通过起大量物理线程来提高速度的方法也不可取，第一consumer的数量受制于partition数量，第二 物理线程对机器负载消耗非常高，总之物理线程太贵了。</p>
-<p>process时间大部分都花在网络等待上了，应该把这一过程异步化，或者微线程化(这两种本质一样)，我们需要两样东西，pull unit与 process unit通信的管道，好用的微线程框架 / 异步框架。其实在c++里面，以上两点基本就不用考虑了，没那么多好用的轮子给你用，写个业务代码还要自己造轮子，肯定是完成不了任务的。如果这个时候用golang,那么以上两样东西就是语言自带的特性，非常棒。</p>
-<p><img src="/image/kafka_arc.png" alt></p>
-<p>在go里面 微线程是非常廉价的，一个pull thread可以对接很多个processThread，这可以通过配置文件来控制，如果发现速度还是不够OK，可以增加pull thead的数量，一般来说，只有process_thread的处理速度超过单个pull thead的拉取速度的时候才适合增加pull thread。</p>
-<p>几个例子</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">process time : 20 ms (通过time.sleep实现)</span><br><span class="line"></span><br><span class="line">process thread 数量: 20 个</span><br><span class="line"></span><br><span class="line">pull thread 数量 : 1 个</span><br><span class="line"></span><br><span class="line">消费速度  1000 /s</span><br></pre></td></tr></table></figure>
+<p>第一步 pop  %rsi 是非常精妙的一句汇编，下面解释为何</p>
+<p>当cpu call save_context 的时候 ，把save_context 函数的下一条指令入栈了，可以理解就是把当前执行流保存在栈顶了，那么pop %rsi 就是把执行流保存到 rsi寄存器并且把rsp 恢复到call save_context 之前的样子。</p>
+<p>第二步，是把返回值设置为0 </p>
+<p>第三步，保存rbx到 jmp_buf , 这里解释一下 (%rdi) 就是jmp_buf  的地址</p>
+<p>第四步，把call save_context  之前的rsp保存到jmp_buf ，注意我们的目的是保存 call save_context  之前的栈顶指针，因为调用 save_context  会破坏栈指针的值，之前的pop %rsi其实就是恢复 rsp的值到 call save_context  之前。</p>
+<p>第五步，因为现在其实还是在 save_context  函数内部，并且我们已经成功拿到call save_context 之前的栈顶指针，所以现在恢复call save_context 后的栈结构，于是把 save_context 的下一条指令恢复到栈顶(push %rsi)</p>
+<p>第六步到第十步，保存rbp,r12,r13,r14,r15</p>
+<p>第七步，这一步是把 save_context 函数的下一条指令 也存入 jmp_buf </p>
+<h3 id="save-context-永远返回-零？"><a href="#save-context-永远返回-零？" class="headerlink" title="save_context 永远返回 零？"></a>save_context 永远返回 零？</h3><p>对，save_context 确实永远返回0 ，起码从汇编码上看是这样的。但是我们的代码中还是出现了这样的东西</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (save_context(_jmpbuf) != <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        ScheduleObj::Instance()-&gt;ScheduleStartRun(); <span class="comment">// 直接调用 this-&gt;run?</span></span><br><span class="line">    &#125; <span class="comment">//micro_thread.cpp : Thread::InitContext()</span></span><br></pre></td></tr></table></figure>
 
-<table>
-<thead>
-<tr>
-<th>process time</th>
-<th>process thread</th>
-<th>pull thread</th>
-<th>消费速度 /s</th>
-<th>cpu</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>20 ms</td>
-<td>10</td>
-<td>1</td>
-<td>500</td>
-<td>3%</td>
-</tr>
-<tr>
-<td>20 ms</td>
-<td>20</td>
-<td>1</td>
-<td>1000</td>
-<td>4.5%</td>
-</tr>
-<tr>
-<td>20 ms</td>
-<td>40</td>
-<td>1</td>
-<td>2000</td>
-<td>6%</td>
-</tr>
-<tr>
-<td>100ms</td>
-<td>40</td>
-<td>1</td>
-<td>400</td>
-<td>4%</td>
-</tr>
-<tr>
-<td>100ms</td>
-<td>80</td>
-<td>1</td>
-<td>800</td>
-<td>4%</td>
-</tr>
-</tbody></table>
-<p>可以看到消费能力几乎就是与 处理微线程的数量成正比，而且cpu消耗也没有特别多，起码在低速情况下，直接增加process 微线程的数量，就能直接获得消费性能的提升</p>
+<p>你可能会非常疑惑，save_context 不是永远返回0 吗，怎么会让它去判断 != 0。但是从汇编的层面来看，一定是 save_context  执行完后，然后才去比较rax的值和0 ，那如果是从其他地方直接跳转到 save_context  的下一句，那么rax就有可能不是0 ，所以 我们的cpp代码中就是通过 if (save_context(_jmpbuf) != 0) 来判断当前执行流是从其他微线程跳转过来的还是 save_context 一路执行下来的。这一点在 restore_context 的汇编码中可以得到证实</p>
+<h3 id="restore-context"><a href="#restore-context" class="headerlink" title="restore_context"></a>restore_context</h3><p>这个函数在整个 源码中，只在 Thread::RestoreContext() 中被调用，且被调用的方式是 <code>restore_context(_jmpbuf, 1);</code>    记住这个入参，它非常重要! 下面解析源码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">restore_context:</span><br><span class="line">	movl %esi,%eax			</span><br><span class="line">	movq (%rdi),%rbx</span><br><span class="line">	movq 8(%rdi),%rsp</span><br><span class="line">	movq 16(%rdi),%rbp</span><br><span class="line">	movq 24(%rdi),%r12</span><br><span class="line">	movq 32(%rdi),%r13</span><br><span class="line">	movq 40(%rdi),%r14</span><br><span class="line">	movq 48(%rdi),%r15</span><br><span class="line">	jmp *56(%rdi)</span><br></pre></td></tr></table></figure>
+
+<p>这个函数第一条指令就印证了我在  “save_context 永远返回零” 那一节中做出的结论。movl %esi,%eax 把第二个参数的值赋值给 eax，按照 restore_context 的调用入参，那eax 就是1 了。而 restore_context 最后一条指令是跳转到 _jmpbuf 保存的save_context 的下一条指令的地址。然后中间的一些指令，就是把 _jmpbuf  保存的指令陆续恢复到 cpu 的寄存器里面</p>
 
       
     </div>
@@ -425,9 +369,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/backend/" rel="tag"># backend</a>
-          
-            <a href="/tags/kafka/" rel="tag"># kafka</a>
+            <a href="/tags/tech-blog/" rel="tag"># tech_blog</a>
           
         </div>
       
@@ -440,8 +382,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/06/15/back-Visibility/" rel="next" title="后台系统的可见性">
-                <i class="fa fa-chevron-left"></i> 后台系统的可见性
+              <a href="/2019/10/25/sarDoc/" rel="next" title="System Activity Reporter note">
+                <i class="fa fa-chevron-left"></i> System Activity Reporter note
               </a>
             
           </div>
@@ -449,10 +391,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2019/10/25/sarDoc/" rel="prev" title="System Activity Reporter note">
-                System Activity Reporter note <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -608,7 +546,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#kafka-consumer的实践"><span class="nav-text">kafka consumer的实践</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#预备知识"><span class="nav-text">预备知识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#函数签名"><span class="nav-text">函数签名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#save-context"><span class="nav-text">save_context</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#save-context-永远返回-零？"><span class="nav-text">save_context 永远返回 零？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#restore-context"><span class="nav-text">restore_context</span></a></li></ol></div>
             
 
           </div>
