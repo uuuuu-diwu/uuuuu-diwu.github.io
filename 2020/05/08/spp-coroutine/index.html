@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="spp的源码，已经由tencent开源 https://github.com/Tencent/MSEC/tree/master/spp_rpc/src/sync_frame/micro_thread">
+<meta name="description" content="spp(server plus plus) 是Tencent SNG大规模使用的服务框架，久经考验，即使是今天，存量的spp服务依旧难以计数，spp历经三个大版本（同步，异步，协程），而最新spp的精髓就在其协程库，之后会出多篇文章解析其用法和核心源码以及设计思想。 spp的源码，已经由tencent开源 https://github.com/Tencent/MSEC/tree/master/sp">
 <meta name="keywords" content="tech_blog">
 <meta property="og:type" content="article">
 <meta property="og:title" content="spp微线程源码解析1--context switch">
 <meta property="og:url" content="http://yoursite.com/2020/05/08/spp-coroutine/index.html">
-<meta property="og:site_name" content="吴迪的笔记">
-<meta property="og:description" content="spp的源码，已经由tencent开源 https://github.com/Tencent/MSEC/tree/master/spp_rpc/src/sync_frame/micro_thread">
+<meta property="og:site_name" content="wd&#39;s 主页">
+<meta property="og:description" content="spp(server plus plus) 是Tencent SNG大规模使用的服务框架，久经考验，即使是今天，存量的spp服务依旧难以计数，spp历经三个大版本（同步，异步，协程），而最新spp的精髓就在其协程库，之后会出多篇文章解析其用法和核心源码以及设计思想。 spp的源码，已经由tencent开源 https://github.com/Tencent/MSEC/tree/master/sp">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2020-05-08T07:38:28.157Z">
+<meta property="og:updated_time" content="2020-05-08T08:07:03.974Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="spp微线程源码解析1--context switch">
-<meta name="twitter:description" content="spp的源码，已经由tencent开源 https://github.com/Tencent/MSEC/tree/master/spp_rpc/src/sync_frame/micro_thread">
+<meta name="twitter:description" content="spp(server plus plus) 是Tencent SNG大规模使用的服务框架，久经考验，即使是今天，存量的spp服务依旧难以计数，spp历经三个大版本（同步，异步，协程），而最新spp的精髓就在其协程库，之后会出多篇文章解析其用法和核心源码以及设计思想。 spp的源码，已经由tencent开源 https://github.com/Tencent/MSEC/tree/master/sp">
 
 
 
@@ -126,7 +126,7 @@
 
 
 
-  <title>spp微线程源码解析1--context switch | 吴迪的笔记</title>
+  <title>spp微线程源码解析1--context switch | wd's 主页</title>
   
 
 
@@ -156,12 +156,12 @@
     <div class="custom-logo-site-title">
       <a href="/" class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
-        <span class="site-title">吴迪的笔记</span>
+        <span class="site-title">wd's 主页</span>
         <span class="logo-line-after"><i></i></span>
       </a>
     </div>
       
-        <p class="site-subtitle">自强不息，厚德载物</p>
+        <p class="site-subtitle">无产阶级万岁</p>
       
   </div>
 
@@ -262,7 +262,7 @@
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="吴迪的笔记">
+      <meta itemprop="name" content="wd's 主页">
     </span>
 
     
@@ -320,11 +320,11 @@
       
 
       
-        <p>spp的源码，已经由tencent开源</p>
+        <p>spp(server plus plus) 是Tencent SNG大规模使用的服务框架，久经考验，即使是今天，存量的spp服务依旧难以计数，spp历经三个大版本（同步，异步，协程），而最新spp的精髓就在其协程库，之后会出多篇文章解析其用法和核心源码以及设计思想。</p>
+<p>spp的源码，已经由tencent开源</p>
 <p><a href="https://github.com/Tencent/MSEC/tree/master/spp_rpc/src/sync_frame/micro_thread" target="_blank" rel="noopener">https://github.com/Tencent/MSEC/tree/master/spp_rpc/src/sync_frame/micro_thread</a></p>
 <a id="more"></a> 
 
-<p>[TOC]</p>
 <h3 id="预备知识"><a href="#预备知识" class="headerlink" title="预备知识"></a>预备知识</h3><p>请先了解 x86_64  c 函数调用约定。但是这里还是简单提下</p>
 <p>例如调用 Foo(uint64_t a,uint64_t b……); 这里假设参数大小都不大于8 bytes，因为大于8 bytes的参数应该用指针传递</p>
 <ol>
